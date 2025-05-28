@@ -1,15 +1,15 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace AuroraWebSoftware\FilamentLoginKit;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 
-class SkeletonPlugin implements Plugin
+class FilamentLoginKitPlugin implements Plugin
 {
     public function getId(): string
     {
-        return 'skeleton';
+        return 'filament-loginkit';
     }
 
     public function register(Panel $panel): void

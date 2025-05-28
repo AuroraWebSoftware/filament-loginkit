@@ -72,16 +72,16 @@ if (! confirm('Modify files?', true)) {
 }
 
 if ($formsOnly) {
-    safeUnlink(__DIR__ . '/src/SkeletonTheme.php');
-    safeUnlink(__DIR__ . '/src/SkeletonPlugin.php');
+    safeUnlink(__DIR__ . '/src/FilamentLoginKitTheme.php');
+    safeUnlink(__DIR__ . '/src/FilamentLoginKitPlugin.php');
 
     removeComposerDeps([
         'filament/filament',
         'filament/tables',
     ], 'require');
 } elseif ($tablesOnly) {
-    safeUnlink(__DIR__ . '/src/SkeletonTheme.php');
-    safeUnlink(__DIR__ . '/src/SkeletonPlugin.php');
+    safeUnlink(__DIR__ . '/src/FilamentLoginKitTheme.php');
+    safeUnlink(__DIR__ . '/src/FilamentLoginKitPlugin.php');
 
     removeComposerDeps([
         'filament/filament',
@@ -89,9 +89,9 @@ if ($formsOnly) {
     ], 'require');
 } else {
     if ($isTheme) {
-        safeUnlink(__DIR__ . '/src/SkeletonServiceProvider.php');
-        safeUnlink(__DIR__ . '/src/SkeletonPlugin.php');
-        safeUnlink(__DIR__ . '/src/Skeleton.php');
+        safeUnlink(__DIR__ . '/src/FilamentLoginKitServiceProvider.php');
+        safeUnlink(__DIR__ . '/src/FilamentLoginKitPlugin.php');
+        safeUnlink(__DIR__ . '/src/FilamentLoginKit.php');
         removeDirectory(__DIR__ . '/bin');
         removeDirectory(__DIR__ . '/config');
         removeDirectory(__DIR__ . '/database');
@@ -106,7 +106,7 @@ if ($formsOnly) {
         setupPackageJsonForTheme();
 
     } else {
-        safeUnlink(__DIR__ . '/src/SkeletonTheme.php');
+        safeUnlink(__DIR__ . '/src/FilamentLoginKitTheme.php');
     }
 
     removeComposerDeps([
@@ -128,7 +128,7 @@ foreach ($files as $file) {
         ':package_name' => $packageName,
         ':package_slug' => $packageSlug,
         ':package_slug_without_prefix' => $packageSlugWithoutPrefix,
-        'Skeleton' => $className,
+        'FilamentLoginKit' => $className,
         'skeleton' => $packageSlug,
         'migration_table_name' => titleSnake($packageSlug),
         'variable' => $variableName,
@@ -136,16 +136,16 @@ foreach ($files as $file) {
     ]);
 
     match (true) {
-        str_contains($file, determineSeparator('src/Skeleton.php')) => rename($file, determineSeparator('./src/' . $className . '.php')),
-        str_contains($file, determineSeparator('src/SkeletonServiceProvider.php')) => rename($file, determineSeparator('./src/' . $className . 'ServiceProvider.php')),
-        str_contains($file, determineSeparator('src/SkeletonTheme.php')) => rename($file, determineSeparator('./src/' . $className . (str_ends_with($className, 'Theme') ? '.php' : 'Theme.php'))),
-        str_contains($file, determineSeparator('src/SkeletonPlugin.php')) => rename($file, determineSeparator('./src/' . $className . 'Plugin.php')),
-        str_contains($file, determineSeparator('src/Facades/Skeleton.php')) => rename($file, determineSeparator('./src/Facades/' . $className . '.php')),
-        str_contains($file, determineSeparator('src/Commands/SkeletonCommand.php')) => rename($file, determineSeparator('./src/Commands/' . $className . 'Command.php')),
-        str_contains($file, determineSeparator('src/Testing/TestsSkeleton.php')) => rename($file, determineSeparator('./src/Testing/Tests' . $className . '.php')),
+        str_contains($file, determineSeparator('src/FilamentLoginKit.php')) => rename($file, determineSeparator('./src/' . $className . '.php')),
+        str_contains($file, determineSeparator('src/FilamentLoginKitServiceProvider.php')) => rename($file, determineSeparator('./src/' . $className . 'ServiceProvider.php')),
+        str_contains($file, determineSeparator('src/FilamentLoginKitTheme.php')) => rename($file, determineSeparator('./src/' . $className . (str_ends_with($className, 'Theme') ? '.php' : 'Theme.php'))),
+        str_contains($file, determineSeparator('src/FilamentLoginKitPlugin.php')) => rename($file, determineSeparator('./src/' . $className . 'Plugin.php')),
+        str_contains($file, determineSeparator('src/Facades/FilamentLoginKit.php')) => rename($file, determineSeparator('./src/Facades/' . $className . '.php')),
+        str_contains($file, determineSeparator('src/Commands/FilamentLoginKitCommand.php')) => rename($file, determineSeparator('./src/Commands/' . $className . 'Command.php')),
+        str_contains($file, determineSeparator('src/Testing/TestsFilamentLoginKit.php')) => rename($file, determineSeparator('./src/Testing/Tests' . $className . '.php')),
         str_contains($file, determineSeparator('database/migrations/create_skeleton_table.php.stub')) => rename($file, determineSeparator('./database/migrations/create_' . titleSnake($packageSlugWithoutPrefix) . '_table.php.stub')),
-        str_contains($file, determineSeparator('config/skeleton.php')) => rename($file, determineSeparator('./config/' . $packageSlugWithoutPrefix . '.php')),
-        str_contains($file, determineSeparator('resources/lang/en/skeleton.php')) => rename($file, determineSeparator('./resources/lang/en/' . $packageSlugWithoutPrefix . '.php')),
+        str_contains($file, determineSeparator('config/loginkit.php')) => rename($file, determineSeparator('./config/' . $packageSlugWithoutPrefix . '.php')),
+        str_contains($file, determineSeparator('resources/lang/en/loginkit.php')) => rename($file, determineSeparator('./resources/lang/en/' . $packageSlugWithoutPrefix . '.php')),
         str_contains($file, 'README.md') => removeTag($file, 'delete'),
         default => [],
     };

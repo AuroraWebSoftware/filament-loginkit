@@ -1,7 +1,9 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace AuroraWebSoftware\FilamentLoginKit;
 
+use AuroraWebSoftware\FilamentLoginKit\Commands\FilamentLoginKitCommand;
+use AuroraWebSoftware\FilamentLoginKit\Testing\TestsFilamentLoginKit;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
@@ -13,14 +15,13 @@ use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use VendorName\Skeleton\Commands\SkeletonCommand;
-use VendorName\Skeleton\Testing\TestsSkeleton;
 
-class SkeletonServiceProvider extends PackageServiceProvider
+
+class FilamentLoginKitServiceProvider extends PackageServiceProvider
 {
-    public static string $name = 'skeleton';
+    public static string $name = 'filament-loginkit';
 
-    public static string $viewNamespace = 'skeleton';
+    public static string $viewNamespace = 'filament-loginkit';
 
     public function configurePackage(Package $package): void
     {
@@ -30,14 +31,14 @@ class SkeletonServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package->name(static::$name)
-            ->hasCommands($this->getCommands())
-            ->hasInstallCommand(function (InstallCommand $command) {
-                $command
-                    ->publishConfigFile()
-                    ->publishMigrations()
-                    ->askToRunMigrations()
-                    ->askToStarRepoOnGitHub(':vendor_slug/:package_slug');
-            });
+            ->hasCommands($this->getCommands());
+//            ->hasInstallCommand(function (InstallCommand $command) {
+//                $command
+//                    ->publishConfigFile()
+//                    ->publishMigrations()
+//                    ->askToRunMigrations()
+//                    ->askToStarRepoOnGitHub(':vendor_slug/:package_slug');
+//            });
 
         $configFileName = $package->shortName();
 
@@ -58,7 +59,9 @@ class SkeletonServiceProvider extends PackageServiceProvider
         }
     }
 
-    public function packageRegistered(): void {}
+    public function packageRegistered(): void
+    {
+    }
 
     public function packageBooted(): void
     {
@@ -80,13 +83,13 @@ class SkeletonServiceProvider extends PackageServiceProvider
         if (app()->runningInConsole()) {
             foreach (app(Filesystem::class)->files(__DIR__ . '/../stubs/') as $file) {
                 $this->publishes([
-                    $file->getRealPath() => base_path("stubs/skeleton/{$file->getFilename()}"),
-                ], 'skeleton-stubs');
+                    $file->getRealPath() => base_path("stubs/filament-loginkit/{$file->getFilename()}"),
+                ], 'filament-loginkit-stubs');
             }
         }
 
         // Testing
-        Testable::mixin(new TestsSkeleton);
+        Testable::mixin(new TestsFilamentLoginKit);
     }
 
     protected function getAssetPackageName(): ?string
@@ -101,8 +104,8 @@ class SkeletonServiceProvider extends PackageServiceProvider
     {
         return [
             // AlpineComponent::make('skeleton', __DIR__ . '/../resources/dist/components/skeleton.js'),
-            Css::make('skeleton-styles', __DIR__ . '/../resources/dist/skeleton.css'),
-            Js::make('skeleton-scripts', __DIR__ . '/../resources/dist/skeleton.js'),
+            Css::make('filament-loginkit-styles', __DIR__ . '/../resources/dist/filament-loginkit.css'),
+            Js::make('filament-loginkit-scripts', __DIR__ . '/../resources/dist/filament-loginkit.js'),
         ];
     }
 
@@ -112,7 +115,7 @@ class SkeletonServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            SkeletonCommand::class,
+            FilamentLoginKitCommand::class,
         ];
     }
 
@@ -146,7 +149,7 @@ class SkeletonServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
-            'create_skeleton_table',
+//            'create_filament_loginkit_table',
         ];
     }
 }

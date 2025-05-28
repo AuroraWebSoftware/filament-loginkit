@@ -1,5 +1,5 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace AuroraWebSoftware\FilamentLoginKit;
 
-class Skeleton {}
+class FilamentLoginKit {}

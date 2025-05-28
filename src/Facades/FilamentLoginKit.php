@@ -1,16 +1,16 @@
 <?php
 
-namespace VendorName\Skeleton\Facades;
+namespace AuroraWebSoftware\FilamentLoginKit\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \VendorName\Skeleton\FilamentLoginKit
+ * @see \AuroraWebSoftware\FilamentLoginKit\FilamentLoginKit
  */
-class Skeleton extends Facade
+class FilamentLoginKit extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \VendorName\Skeleton\FilamentLoginKit::class;
+        return FilamentLoginKit::class;
     }
 }

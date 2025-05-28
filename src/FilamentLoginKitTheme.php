@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace AuroraWebSoftware\FilamentLoginKit;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;

@@ -1,21 +1,21 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "aurorawebsoftware/filament-loginkit",
+    "description": "This is my package filament-loginkit",
     "keywords": [
-        ":vendor_name",
+        "AuroraWebSoftware",
         "laravel",
-        ":package_slug"
+        "filament-loginkit"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/aurorawebsoftware/filament-loginkit",
     "support": {
-        "issues": "https://github.com/:vendor_slug/:package_slug/issues",
-        "source": "https://github.com/:vendor_slug/:package_slug"
+        "issues": "https://github.com/aurorawebsoftware/filament-loginkit/issues",
+        "source": "https://github.com/aurorawebsoftware/filament-loginkit"
     },
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "AuroraWebSoftware",
+            "email": "websoftwareteam@aurorabilisim.com",
             "role": "Developer"
         }
     ],
@@ -41,13 +41,13 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "AuroraWebSoftware\\FilamentLoginKit\\": "src/",
+            "AuroraWebSoftware\\FilamentLoginKit\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/"
+            "AuroraWebSoftware\\FilamentLoginKit\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -67,10 +67,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "AuroraWebSoftware\\FilamentLoginKit\\FilamentLoginKitServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "FilamentLoginKit": "AuroraWebSoftware\\FilamentLoginKit\\Facades\\FilamentAstart"
             }
         }
     },

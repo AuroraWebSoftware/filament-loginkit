@@ -16,7 +16,6 @@ use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-
 class FilamentLoginKitServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'filament-loginkit';
@@ -32,13 +31,13 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
          */
         $package->name(static::$name)
             ->hasCommands($this->getCommands());
-//            ->hasInstallCommand(function (InstallCommand $command) {
-//                $command
-//                    ->publishConfigFile()
-//                    ->publishMigrations()
-//                    ->askToRunMigrations()
-//                    ->askToStarRepoOnGitHub(':vendor_slug/:package_slug');
-//            });
+        //            ->hasInstallCommand(function (InstallCommand $command) {
+        //                $command
+        //                    ->publishConfigFile()
+        //                    ->publishMigrations()
+        //                    ->askToRunMigrations()
+        //                    ->askToStarRepoOnGitHub(':vendor_slug/:package_slug');
+        //            });
 
         $configFileName = $package->shortName();
 
@@ -59,9 +58,7 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
         }
     }
 
-    public function packageRegistered(): void
-    {
-    }
+    public function packageRegistered(): void {}
 
     public function packageBooted(): void
     {
@@ -149,7 +146,7 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
-//            'create_filament_loginkit_table',
+            //            'create_filament_loginkit_table',
         ];
     }
 }

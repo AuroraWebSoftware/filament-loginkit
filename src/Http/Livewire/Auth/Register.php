@@ -2,8 +2,8 @@
 
 namespace AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth;
 
-use Filament\Pages\Auth\Register as BaseRegister;
 use AuroraWebSoftware\FilamentLoginKit\Http\Responses\RegistrationResponse;
+use Filament\Pages\Auth\Register as BaseRegister;
 
 class Register extends BaseRegister
 {

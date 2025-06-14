@@ -6,7 +6,7 @@ return [
     'password_reset' => 'Şifre sıfırlama kodunuz: :code',
 
     'email_login_tab' => 'Email ile Giriş',
-    'sms_login_tab'   => 'SMS ile Giriş',
+    'sms_login_tab' => 'SMS ile Giriş',
 
     'form' => [
         'email' => 'E-posta',

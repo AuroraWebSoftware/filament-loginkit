@@ -16,11 +16,9 @@ class SendTwoFactorCodeListener
      * Fortify 2FA event’lerini yakala ve
      * kullanıcının two_factor_type alanına göre
      * kod üret + bildir.
-     *
-     * @param TwoFactorAuthenticationChallenged|TwoFactorAuthenticationEnabled $event
      */
     public function handle(
-        TwoFactorAuthenticationChallenged|TwoFactorAuthenticationEnabled $event
+        TwoFactorAuthenticationChallenged | TwoFactorAuthenticationEnabled $event
     ): void {
         $user = $event->user;
 
@@ -30,11 +28,11 @@ class SendTwoFactorCodeListener
         }
 
         // 🔐 Kod üret
-        $len       = config('filament-loginkit.sms.code_length', 6);
+        $len = config('filament-loginkit.sms.code_length', 6);
         $plainCode = str_pad(random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
 
         $user->forceFill([
-            'two_factor_code'       => Hash::make($plainCode),
+            'two_factor_code' => Hash::make($plainCode),
             'two_factor_expires_at' => now()->addMinutes(config('filament-loginkit.sms.code_ttl', 5)),
         ])->save();
 

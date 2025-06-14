@@ -4,20 +4,22 @@ namespace AuroraWebSoftware\FilamentLoginKit\Pages;
 
 use AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType;
 use Carbon\Carbon;
-use Filament\Forms\Components\{Grid, Radio, Section, TextInput};
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\{Auth, Hash, Validator};
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Laravel\Fortify\Actions\{
-    ConfirmTwoFactorAuthentication,
-    DisableTwoFactorAuthentication,
-    EnableTwoFactorAuthentication,
-    GenerateNewRecoveryCodes
-};
+use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
+use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
+use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
+use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 use Laravel\Fortify\Features;
 
 class Account extends Page implements HasForms
@@ -26,21 +28,30 @@ class Account extends Page implements HasForms
 
     /* ---------------- Filament meta ---------------- */
     protected static string $view = 'filament-loginkit::account';
-    protected static ?string $navigationIcon  = 'heroicon-o-user-circle';
+
+    protected static ?string $navigationIcon = 'heroicon-o-user-circle';
+
     protected static ?string $navigationLabel = 'Hesap';
-    protected static ?string $title           = 'Hesap Ayarları';
+
+    protected static ?string $title = 'Hesap Ayarları';
 
     /* ---------------- Form state dizileri ---------- */
-    public array $account   = [];
-    public array $password  = [];
+    public array $account = [];
+
+    public array $password = [];
+
     public array $twoFactor = [];
 
     /* ---------------- Diğer değişkenler ------------- */
     public $user;
-    public bool   $showingQrCode        = false;
-    public bool   $showingRecoveryCodes = false;
-    public bool   $showingConfirmation  = false;
-    public string $otpCode              = '';
+
+    public bool $showingQrCode = false;
+
+    public bool $showingRecoveryCodes = false;
+
+    public bool $showingConfirmation = false;
+
+    public string $otpCode = '';
 
     /* ---------------- Mount ------------------------- */
     public function mount(): void
@@ -48,8 +59,8 @@ class Account extends Page implements HasForms
         $this->user = Auth::user();
 
         $this->account = [
-            'name'         => $this->user->name,
-            'email'        => $this->user->email,
+            'name' => $this->user->name,
+            'email' => $this->user->email,
             'phone_number' => $this->user->phone_number,
         ];
 
@@ -161,6 +172,7 @@ class Account extends Page implements HasForms
 
         if (! Hash::check($data['current_password'], $this->user->password)) {
             Notification::make()->title('Mevcut şifre yanlış')->danger()->send();
+
             return;
         }
 
@@ -176,8 +188,8 @@ class Account extends Page implements HasForms
         $code = (string) rand(100000, 999999);
 
         $this->user->forceFill([
-            'two_factor_code'        => Hash::make($code),
-            'two_factor_expires_at'  => now()->addMinutes(10),
+            'two_factor_code' => Hash::make($code),
+            'two_factor_expires_at' => now()->addMinutes(10),
         ])->save();
 
         // Notification'ları ayır
@@ -201,13 +213,15 @@ class Account extends Page implements HasForms
     {
         $type = $this->currentTwoFactorType;
 
-        if (!$type) {
+        if (! $type) {
             Notification::make()->title('Lütfen bir 2FA yöntemi seçin')->warning()->send();
+
             return;
         }
 
         if ($this->is2faEnabled()) {
             Notification::make()->title('2FA zaten etkin')->warning()->send();
+
             return;
         }
 
@@ -232,8 +246,9 @@ class Account extends Page implements HasForms
     /* ============ 2FA – doğrulama & tamamla ========= */
     public function confirmTwoFactorAuthentication(ConfirmTwoFactorAuthentication $fortify): void
     {
-        if (!$this->otpCode) {
+        if (! $this->otpCode) {
             Notification::make()->title('Lütfen doğrulama kodunu girin')->warning()->send();
+
             return;
         }
 
@@ -246,16 +261,18 @@ class Account extends Page implements HasForms
                 $this->showingQrCode = false;
             } catch (\Exception $e) {
                 Notification::make()->title('Authenticator kodu hatalı')->danger()->send();
+
                 return;
             }
         } else {
             // sms / email kodu
             if (
-                !$this->user->two_factor_code ||
-                !Hash::check($this->otpCode, $this->user->two_factor_code) ||
+                ! $this->user->two_factor_code ||
+                ! Hash::check($this->otpCode, $this->user->two_factor_code) ||
                 Carbon::parse($this->user->two_factor_expires_at)->isPast()
             ) {
                 Notification::make()->title('Kod hatalı veya süresi geçti')->danger()->send();
+
                 return;
             }
         }
@@ -263,12 +280,12 @@ class Account extends Page implements HasForms
         // Ortak başarı yolu
         $this->user->forceFill([
             'two_factor_confirmed_at' => now(),
-            'two_factor_code'         => null,
-            'two_factor_expires_at'   => null,
+            'two_factor_code' => null,
+            'two_factor_expires_at' => null,
         ])->save();
 
         $this->reset('otpCode');
-        $this->showingConfirmation  = false;
+        $this->showingConfirmation = false;
         $this->showingRecoveryCodes = ($type === TwoFactorType::authenticator->value);
 
         $methodName = TwoFactorType::from($type)->getLabel();
@@ -281,8 +298,9 @@ class Account extends Page implements HasForms
     /* ============ 2FA – devre dışı bırak ============ */
     public function disable2fa(DisableTwoFactorAuthentication $fortify): void
     {
-        if (!$this->is2faEnabled()) {
+        if (! $this->is2faEnabled()) {
             Notification::make()->title('2FA zaten devre dışı')->warning()->send();
+
             return;
         }
 
@@ -292,9 +310,9 @@ class Account extends Page implements HasForms
         }
 
         $this->user->forceFill([
-            'two_factor_type'         => null,
-            'two_factor_code'         => null,
-            'two_factor_expires_at'   => null,
+            'two_factor_type' => null,
+            'two_factor_code' => null,
+            'two_factor_expires_at' => null,
             'two_factor_confirmed_at' => null,
         ])->save();
 
@@ -311,6 +329,7 @@ class Account extends Page implements HasForms
     {
         if ($this->user->two_factor_type !== TwoFactorType::authenticator->value) {
             Notification::make()->title('Kurtarma kodları sadece Authenticator için kullanılır')->warning()->send();
+
             return;
         }
 
@@ -326,12 +345,13 @@ class Account extends Page implements HasForms
 
         $this->user->update(['two_factor_type' => TwoFactorType::authenticator->value]);
 
-        $this->showingQrCode       = true;
+        $this->showingQrCode = true;
         $this->showingConfirmation = Features::optionEnabled(
-            Features::twoFactorAuthentication(), 'confirm'
+            Features::twoFactorAuthentication(),
+            'confirm'
         );
 
-        if (!$this->showingConfirmation) {
+        if (! $this->showingConfirmation) {
             $this->showingRecoveryCodes = true;
         }
     }

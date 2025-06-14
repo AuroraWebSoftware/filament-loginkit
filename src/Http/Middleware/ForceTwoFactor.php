@@ -19,7 +19,7 @@ class ForceTwoFactor
         $user = Filament::auth()->user();
 
         // Kullanıcı yoksa devam et
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
@@ -32,7 +32,7 @@ class ForceTwoFactor
         if (
             $user->is_2fa_required
             && (empty($user->two_factor_type) || is_null($user->two_factor_type))
-        ){
+        ) {
             $panel = Filament::getCurrentPanel();
 
             if ($panel) {

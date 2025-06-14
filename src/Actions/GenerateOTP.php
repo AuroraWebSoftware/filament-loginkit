@@ -15,7 +15,9 @@ class GenerateOTP
      * @throws InvalidCharactersException
      */
     public static function for(string $secret): string
-    {ds(4);
+    {
+        ds(4);
+
         return app(Google2FA::class)->getCurrentOtp($secret);
     }
 }

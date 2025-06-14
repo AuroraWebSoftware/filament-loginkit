@@ -2,6 +2,9 @@
 
 namespace AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth;
 
+use AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType;
+use AuroraWebSoftware\FilamentLoginKit\Notifications\SendOTP;
+use AuroraWebSoftware\FilamentLoginKit\Notifications\SmsLoginNotification;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use DanHarrin\LivewireRateLimiting\WithRateLimiting;
 use Filament\Actions\Action;
@@ -15,14 +18,10 @@ use Filament\Pages\Concerns\InteractsWithFormActions;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Http\Requests\TwoFactorLoginRequest;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Reactive;
-use AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType;
-use AuroraWebSoftware\FilamentLoginKit\Notifications\SendOTP;
-use AuroraWebSoftware\FilamentLoginKit\Notifications\SmsLoginNotification;
 
 class LoginTwoFactor extends Page implements HasActions, HasForms
 {
@@ -31,36 +30,40 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
     use WithRateLimiting;
 
     protected static string $layout = 'filament-loginkit::layouts.login';
-    protected static string $view   = 'filament-loginkit::auth.login-two-factor';
-    protected static bool   $shouldRegisterNavigation = false;
 
-    public mixed   $challengedUser = null;
-    public ?string $twoFactorType  = null;
+    protected static string $view = 'filament-loginkit::auth.login-two-factor';
+
+    protected static bool $shouldRegisterNavigation = false;
+
+    public mixed $challengedUser = null;
+
+    public ?string $twoFactorType = null;
 
     /**  Filament state dizisi  */
-    public array   $data = [];
+    public array $data = [];
 
-    #[Reactive] public int $lastResendTime = 0;
+    #[Reactive]
+    public int $lastResendTime = 0;
 
     /* --------------------------------------------------------------------- */
-    /*  MOUNT                                                                */
+    /*  MOUNT */
     /* --------------------------------------------------------------------- */
     public function mount(TwoFactorLoginRequest $request): void
     {
         abort_unless($request->challengedUser(), 403);
 
         $this->challengedUser = $request->challengedUser();
-        $this->twoFactorType  = $this->challengedUser->two_factor_type?->value
+        $this->twoFactorType = $this->challengedUser->two_factor_type?->value
             ?? TwoFactorType::email->value;
 
         // 30 sn cool-down
-        Cache::put('resend_cooldown_'.$this->challengedUser->id, true, now()->addSeconds(30));
+        Cache::put('resend_cooldown_' . $this->challengedUser->id, true, now()->addSeconds(30));
 
         $this->form->fill();
     }
 
     /* --------------------------------------------------------------------- */
-    /*  FORM ŞEMASI                                                          */
+    /*  FORM ŞEMASI */
     /* --------------------------------------------------------------------- */
     protected function getFormSchema(): array
     {
@@ -76,12 +79,12 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
     }
 
     /* --------------------------------------------------------------------- */
-    /*  RESEND LOGIC                                                         */
+    /*  RESEND LOGIC */
     /* --------------------------------------------------------------------- */
     #[Computed]
     public function canResend(): bool
     {
-        return ! Cache::has('resend_cooldown_'.$this->challengedUser->id);
+        return ! Cache::has('resend_cooldown_' . $this->challengedUser->id);
     }
 
     public function resend(): Action
@@ -101,7 +104,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
 
         $this->generateAndSendCode();
 
-        Cache::put('resend_cooldown_'.$this->challengedUser->id, true, now()->addSeconds(30));
+        Cache::put('resend_cooldown_' . $this->challengedUser->id, true, now()->addSeconds(30));
         $this->dispatch('resent');
 
         Notification::make()
@@ -114,26 +117,28 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
     {
         try {
             $this->rateLimit(1, 60);
+
             return true;
         } catch (TooManyRequestsException $e) {
             Notification::make()
                 ->title(__('Too many attempts — please wait.'))
                 ->danger()
                 ->send();
+
             return false;
         }
     }
 
     /* --------------------------------------------------------------------- */
-    /*  KOD ÜRET / GÖNDER                                                    */
+    /*  KOD ÜRET / GÖNDER */
     /* --------------------------------------------------------------------- */
     protected function generateAndSendCode(): void
     {
-        $len  = config('filament-loginkit.sms.code_length', 6);
+        $len = config('filament-loginkit.sms.code_length', 6);
         $code = str_pad(random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
 
         $this->challengedUser->forceFill([
-            'two_factor_code'       => Hash::make($code),
+            'two_factor_code' => Hash::make($code),
             'two_factor_expires_at' => now()->addMinutes(config('filament-loginkit.sms.code_ttl', 5)),
         ])->save();
 
@@ -145,7 +150,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
     }
 
     /* --------------------------------------------------------------------- */
-    /*  SUBMIT                                                               */
+    /*  SUBMIT */
     /* --------------------------------------------------------------------- */
     public function submit(): void
     {
@@ -153,6 +158,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
 
         if ($code === '') {
             Notification::make()->title(__('Lütfen doğrulama kodunu girin'))->danger()->send();
+
             return;
         }
 
@@ -165,6 +171,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
                 app(ConfirmTwoFactorAuthentication::class)($this->challengedUser, $code);
             } catch (\Throwable) {
                 Notification::make()->title(__('Authenticator kodu hatalı'))->danger()->send();
+
                 return;
             }
         } else {
@@ -174,16 +181,18 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
                 now()->greaterThan($this->challengedUser->two_factor_expires_at)
             ) {
                 Notification::make()->title(__('Kod süresi geçti, yeni kod isteyin'))->danger()->send();
+
                 return;
             }
 
             if (! Hash::check($code, $this->challengedUser->two_factor_code)) {
                 Notification::make()->title(__('Kod hatalı'))->danger()->send();
+
                 return;
             }
 
             $this->challengedUser->forceFill([
-                'two_factor_code'       => null,
+                'two_factor_code' => null,
                 'two_factor_expires_at' => null,
             ])->save();
         }
@@ -197,10 +206,8 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
         $this->redirect($panelHome, navigate: true);
     }
 
-
-
     /* --------------------------------------------------------------------- */
-    /*  LOGO                                                                 */
+    /*  LOGO */
     /* --------------------------------------------------------------------- */
     public function hasLogo(): bool
     {
@@ -208,7 +215,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
     }
 
     /* --------------------------------------------------------------------- */
-    /*  FORM STATE PATH                                                      */
+    /*  FORM STATE PATH */
     /* --------------------------------------------------------------------- */
     protected function getFormStatePath(): ?string
     {

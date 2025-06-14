@@ -9,16 +9,13 @@ use Illuminate\Support\Facades\App;
 class SmsLoginNotification extends Notification
 {
     protected string $code;
+
     protected ?string $message;
+
     protected ?string $templateKey;
+
     public $locale;
 
-    /**
-     * @param string $code
-     * @param string|null $message
-     * @param string|null $templateKey
-     * @param string|null $locale
-     */
     public function __construct(string $code, ?string $message = null, ?string $templateKey = null, ?string $locale = null)
     {
         $this->code = $code;
@@ -31,7 +28,6 @@ class SmsLoginNotification extends Notification
     {
         return [SmsChannel::class];
     }
-
 
     public function toSms($notifiable)
     {
@@ -46,6 +42,4 @@ class SmsLoginNotification extends Notification
             $template
         );
     }
-
 }
-

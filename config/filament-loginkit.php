@@ -63,7 +63,7 @@ return [
 
         'sms_queue' => env('LOGIN_KIT_SMS_QUEUE', true),
 
-//        'generic_errors' => env('LOGIN_KIT_GENERIC_ERR', false),
+        //        'generic_errors' => env('LOGIN_KIT_GENERIC_ERR', false),
         'generic_errors' => false,
     ],
 
@@ -82,7 +82,6 @@ return [
     'send_otp_class' => \AuroraWebSoftware\FilamentLoginKit\Notifications\SendOTP::class,
     'phone_number_field' => 'phone',
 
-
     'turnstile' => [
         'enabled' => env('TURNSTILE_ENABLED', false),
         'sitekey' => env('TURNSTILE_SITEKEY'),
@@ -96,7 +95,7 @@ return [
         ],
         'sms_resend' => [
             'max_requests' => 2,
-            'per_minutes' => 1
+            'per_minutes' => 1,
         ],
         'login' => [
             'max_requests' => 5,

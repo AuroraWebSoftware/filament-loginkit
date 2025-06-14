@@ -144,8 +144,8 @@ foreach ($files as $file) {
         str_contains($file, determineSeparator('src/Commands/FilamentLoginKitCommand.php')) => rename($file, determineSeparator('./src/Commands/' . $className . 'Command.php')),
         str_contains($file, determineSeparator('src/Testing/TestsFilamentLoginKit.php')) => rename($file, determineSeparator('./src/Testing/Tests' . $className . '.php')),
         str_contains($file, determineSeparator('database/migrations/create_skeleton_table.php.stub')) => rename($file, determineSeparator('./database/migrations/create_' . titleSnake($packageSlugWithoutPrefix) . '_table.php.stub')),
-        str_contains($file, determineSeparator('config/loginkit.php')) => rename($file, determineSeparator('./config/' . $packageSlugWithoutPrefix . '.php')),
-        str_contains($file, determineSeparator('resources/lang/en/loginkit.php')) => rename($file, determineSeparator('./resources/lang/en/' . $packageSlugWithoutPrefix . '.php')),
+        str_contains($file, determineSeparator('config/filament-loginkit.php')) => rename($file, determineSeparator('./config/' . $packageSlugWithoutPrefix . '.php')),
+        str_contains($file, determineSeparator('resources/lang/en/filament-loginkit.php')) => rename($file, determineSeparator('./resources/lang/en/' . $packageSlugWithoutPrefix . '.php')),
         str_contains($file, 'README.md') => removeTag($file, 'delete'),
         default => [],
     };

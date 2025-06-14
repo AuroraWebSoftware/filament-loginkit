@@ -7,4 +7,8 @@ module.exports = {
         './resources/views/filament/**/*.blade.php',
         './vendor/filament/**/*.blade.php',
     ],
+    safelist: [
+        'mt-4',
+        'mb-1',
+    ],
 }

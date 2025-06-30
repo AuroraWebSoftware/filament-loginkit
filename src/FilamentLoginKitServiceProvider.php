@@ -7,6 +7,7 @@ use AuroraWebSoftware\FilamentLoginKit\Http\Responses\LoginResponse;
 use AuroraWebSoftware\FilamentLoginKit\Http\Responses\TwoFactorChallengeViewResponse;
 use AuroraWebSoftware\FilamentLoginKit\Http\Responses\TwoFactorLoginResponse;
 use AuroraWebSoftware\FilamentLoginKit\Testing\TestsFilamentLoginKit;
+use Filament\Events\ServingFilament;
 use Filament\Facades\Filament;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
@@ -54,8 +55,8 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
 
         $configFileName = $package->shortName();
 
-        if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
-            $package->hasConfigFile();
+        if (file_exists($package->basePath("/../config/filament-loginkit.php"))) {
+            $package->hasConfigFile('filament-loginkit');
         }
 
         if (file_exists($package->basePath('/../database/migrations'))) {
@@ -89,6 +90,23 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
             $this->getAssetPackageName()
         );
 
+        Filament::serving(function () {
+            if ($panel = Filament::getCurrentPanel()) {
+                $panelColor = $panel->getColors()['primary'] ?? Color::Amber;
+
+                FilamentColor::register([
+                    'default' => is_string($panelColor)
+                        ? Color::hex($panelColor)
+                        : $panelColor,
+
+                    'primary' => is_string($panelColor)
+                        ? Color::hex($panelColor)
+                        : $panelColor,
+                ]);
+            }
+        });
+
+
         // Icon Registration
         FilamentIcon::register($this->getIcons());
 
@@ -108,6 +126,26 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
                     $file->getRealPath() => base_path("stubs/filament-loginkit/{$file->getFilename()}"),
                 ], 'filament-loginkit-stubs');
             }
+
+            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+            $this->publishes([
+                __DIR__ . '/../database/migrations' => database_path('migrations'),
+            ], 'filament-loginkit-migrations');
+
+            $this->publishes([
+                __DIR__ . '/../config/loginkit-auth.php' => config_path('filament-loginkit.php'),
+            ], 'filament-loginkit-config');
+
+            $this->publishes([
+                __DIR__ . '/../resources/lang' => lang_path('vendor/filament-loginkit'),
+            ], 'filament-loginkit-lang');
+
+            $this->publishes([
+                __DIR__ . '/../resources/dist/filament-loginkit.css' => public_path('vendor/filament-loginkit/filament-loginkit.css'),
+                __DIR__ . '/../resources/dist/filament-loginkit.js' => public_path('vendor/filament-loginkit/filament-loginkit.js'),
+            ], 'filament-loginkit-assets');
+
         }
 
         // Testing
@@ -242,7 +280,7 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
 
     protected function getAssetPackageName(): ?string
     {
-        return ':vendor_slug/:package_slug';
+        return 'aurorawebsoftware/filament-loginkit';
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+
 namespace AuroraWebSoftware\FilamentLoginKit\Mail;
 
 use Illuminate\Bus\Queueable;
@@ -18,14 +19,13 @@ class TwoFactorCodeMail extends Mailable
     public function __construct(public string $code)
     {
         //
-        ds(5);
     }
 
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
-    {ds(6);
+    {
         return new Envelope(
             subject: __('Your security code for :app', ['app' => config('app.name')]),
         );
@@ -37,7 +37,7 @@ class TwoFactorCodeMail extends Mailable
      * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
     public function attachments(): array
-    {ds(7);
+    {
         return [];
     }
 }

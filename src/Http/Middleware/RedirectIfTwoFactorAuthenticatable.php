@@ -2,46 +2,45 @@
 
 namespace AuroraWebSoftware\FilamentLoginKit\Http\Middleware;
 
-use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable as DefaultRedirectIfTwoFactorAuthenticatable;
+use Filament\Facades\Filament;
+use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable as Base;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-class RedirectIfTwoFactorAuthenticatable extends DefaultRedirectIfTwoFactorAuthenticatable
+class RedirectIfTwoFactorAuthenticatable extends Base
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param callable                 $next
-     * @return mixed
-     */
     public function handle($request, $next)
     {
+
         if ($request->session()->get('login_type') === 'sms') {
             return $next($request);
         }
 
+        if (Filament::getCurrentPanel()) {
+            session()->put('panel', Filament::getCurrentPanel()->getId());
+        }
+
         $user = $this->validateCredentials($request);
 
-        if ($user->is_2fa_required) {
-            if (Fortify::confirmsTwoFactorAuthentication()) {
-                if (
-                    optional($user)->two_factor_secret &&
-                    ! is_null(optional($user)->two_factor_confirmed_at) &&
-                    in_array(TwoFactorAuthenticatable::class, class_uses_recursive($user))
-                ) {
-                    return $this->twoFactorChallengeResponse($request, $user);
-                }
+        if (! $user->is_2fa_required) {
+            return $next($request);
+        }
 
-                return $next($request);
-            }
+        $type = $user->two_factor_type;
 
+        if ($type === 'authenticator') {
             if (
                 optional($user)->two_factor_secret &&
                 in_array(TwoFactorAuthenticatable::class, class_uses_recursive($user))
             ) {
                 return $this->twoFactorChallengeResponse($request, $user);
             }
+
+            return $next($request);
+        }
+
+        if (in_array($type, ['email', 'sms'])) {
+            return $this->twoFactorChallengeResponse($request, $user);
         }
 
         return $next($request);

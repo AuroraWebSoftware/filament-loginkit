@@ -2,37 +2,52 @@
 
 namespace AuroraWebSoftware\FilamentLoginKit\Notifications;
 
-use AuroraWebSoftware\FilamentLoginKit\Mail\TwoFactorCodeMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
 
-class SendOTP extends Notification implements ShouldQueue
+class SendOTP extends Notification implements ShouldQueue, ShouldBeUnique, ShouldBeEncrypted
 {
     use Queueable;
 
+    public $tries;
+    public $backoff;
+    public $uniqueFor;
+
     public function __construct(
         public string $code
-    ) {}
+    ) {
+        $this->onQueue(config('filament-loginkit.email_queue', 'filament-loginkit'));
+        $this->tries = config('filament-loginkit.notification_max_tries', 1);
+        $this->backoff = config('filament-loginkit.notification_backoff', 0);
+        $this->uniqueFor = 600;
+    }
 
-    /**
-     * Get the notification's delivery channels.
-     */
     public function via(mixed $notifiable): array
     {
         return ['mail'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(mixed $notifiable): Mailable
+    public function toMail($notifiable): MailMessage
     {
-        $emailView = 'filament-loginkit::emails.two-factor-code';
+        return (new MailMessage)
+            ->subject(__('filament-loginkit::filament-loginkit.email.subject'))
+            ->view('filament-loginkit::emails.two-factor-code', [
+                'code' => $this->code,
+                'user' => $notifiable,
+            ]);
+    }
 
-        return (new TwoFactorCodeMail($this->code))
-            ->to($notifiable->email)
-            ->view($emailView);
+    public function uniqueId()
+    {
+        return 'mail-'.$this->code.'-'.$this->getKey();
+    }
+
+    public function failed($exception)
+    {
+        \Log::error('[SendOTP] notification failed: '.$exception->getMessage());
     }
 }

@@ -43,7 +43,7 @@ class FilamentLoginKitPlugin implements Plugin
             $panel->userMenuItems([
                 'two-factor-authentication' => MenuItem::make()
                     ->icon('heroicon-o-lock-closed')
-                    ->label(__('Hesabım'))
+                    ->label(__('filament-loginkit::filament-loginkit.navigation.my_account'))
                     ->url(fn(): string => Account::getUrl()),
             ]);
         }

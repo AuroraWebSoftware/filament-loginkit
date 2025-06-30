@@ -6,7 +6,10 @@ return [
     'password_reset' => 'Şifre sıfırlama kodunuz: :code',
 
     'email_login_tab' => 'Email ile Giriş',
-    'sms_login_tab'   => 'SMS ile Giriş',
+    'sms_login_tab' => 'SMS ile Giriş',
+
+    'generic_fail_title' => 'İşlem Başarısız',
+    'generic_fail_body' => 'İşlem başarısız oldu, lütfen tekrar deneyin.',
 
     'form' => [
         'email' => 'E-posta',
@@ -73,4 +76,169 @@ return [
         'generic_body' => 'Bir hata oluştu, lütfen tekrar deneyin.',
         'code' => 'Kod',
     ],
+
+    'email' => [
+        'subject' => 'İki Faktörlü Kimlik Doğrulama Kodu',
+        'header_subtitle' => 'Güvenli Giriş Sistemi',
+        'greeting' => 'Merhaba :name!',
+        'dear_user' => 'Değerli Kullanıcı',
+        'description' => 'Hesabınıza güvenli bir şekilde giriş yapmak için aşağıdaki doğrulama kodunu kullanın. Bu kod sadece tek kullanımlıktır ve 10 dakika sonra geçerliliğini yitirecektir.',
+        'code_label' => 'Doğrulama Kodu',
+        'expires_in' => ':minutes dakika içinde geçerliliğini yitirir',
+        'how_to_use' => 'Nasıl Kullanılır?',
+        'step_1' => 'Giriş sayfasında bu kodu doğrulama alanına girin',
+        'step_2' => 'Kodu tam olarak yukarıdaki gibi yazın',
+        'step_3' => 'Giriş işleminizi tamamlayın',
+        'security_notice' => 'Güvenlik Bildirimi',
+        'security_warning' => 'Eğer bu giriş işlemini siz gerçekleştirmediyseniz, lütfen hesabınızı korumak için derhal şifrenizi değiştirin ve bizimle iletişime geçin.',
+        'footer_text' => 'Bu e-posta :app tarafından otomatik olarak gönderilmiştir.',
+
+        'invalid_credentials_title' => 'Geçersiz Giriş',
+        'invalid_credentials_body' => 'E-posta adresi veya şifre hatalı.',
+        'too_many_attempts_title' => 'Çok Fazla Deneme',
+        'too_many_attempts_body' => 'Çok fazla giriş denemesi yaptınız. :seconds saniye sonra tekrar deneyin.',
+        'generic_fail_title' => 'Giriş Başarısız',
+        'generic_fail_body' => 'Giriş yapılamadı, lütfen tekrar deneyin.',
+    ],
+
+    'navigation' => [
+        'account' => 'Hesap Ayarları',
+        'my_account' => 'Hesabım'
+    ],
+
+    'account' => [
+        'title' => 'Hesap Ayarları',
+        'user_information' => 'Kullanıcı Bilgileri',
+        'user_information_description' => 'Hesap bilgilerinizi buradan güncelleyebilirsiniz.',
+        'change_password' => 'Şifre Değiştir',
+        'change_password_description' => 'Güvenliğiniz için düzenli olarak şifrenizi değiştirmenizi öneririz.',
+        'save' => 'Kaydet',
+        'saving' => 'Kaydediliyor...',
+        'changing_password' => 'Değiştiriliyor...',
+    ],
+
+    'fields' => [
+        'name' => 'İsim',
+        'email' => 'E-posta',
+        'phone' => 'Telefon',
+        'current_password' => 'Mevcut Şifre',
+        'new_password' => 'Yeni Şifre',
+        'new_password_confirmation' => 'Yeni Şifre (Tekrar)',
+        'password_requirements' => 'En az 8 karakter, büyük harf, küçük harf ve rakam içermelidir.',
+    ],
+
+    'two_factor' => [
+        'title' => 'İki Faktörlü Kimlik Doğrulama',
+        'description' => 'Hesabınızın güvenliğini artırmak için iki faktörlü kimlik doğrulamayı etkinleştirin.',
+        'enabled' => '2FA Etkin',
+        'disabled' => '2FA Devre Dışı',
+        'protected_with' => 'Hesabınız şu yöntemle korunuyor',
+        'password_only' => 'Hesabınız sadece şifre ile korunuyor',
+        'enable' => '2FA\'yı Etkinleştir',
+        'disable' => 'Devre Dışı Bırak',
+        'disable_confirm' => '2FA\'yı devre dışı bırakmak istediğinizden emin misiniz? Bu işlem hesabınızın güvenliğini azaltacaktır.',
+        'regenerate_codes' => 'Kodları Yenile',
+        'regenerate_codes_confirm' => 'Yeni kurtarma kodları oluşturmak istediğinizden emin misiniz? Eski kodlar geçersiz olacak.',
+        'setup_title' => '2FA Kurulumu',
+        'select_method' => 'Güvenlik yönteminizi seçin',
+        'method' => '2FA Yöntemi',
+
+        'methods' => [
+            'sms' => 'SMS',
+            'email' => 'E-posta',
+            'authenticator' => 'Authenticator Uygulaması',
+        ],
+
+        'descriptions' => [
+            'sms' => 'Telefon numaranıza SMS ile 6 haneli güvenlik kodu gönderilir',
+            'email' => 'E-posta adresinize 6 haneli güvenlik kodu gönderilir',
+            'authenticator' => 'Google Authenticator, Authy veya benzeri uygulama kullanılır',
+        ],
+
+        'scan_qr_code' => 'QR kodu tarayın',
+        'scan_with_app' => 'Authenticator uygulamanız ile bu QR kodunu tarayın',
+        'manual_key' => 'Manuel Giriş Kodu',
+        'enter_code' => 'Doğrulama kodu girin',
+        'enter_app_code' => 'Authenticator uygulamanızdan 6 haneli kodu girin',
+        'enter_sent_code' => 'Size gönderilen 6 haneli doğrulama kodunu girin',
+        'confirm_and_enable' => 'Onayla ve Etkinleştir',
+        'confirming' => 'Onaylanıyor...',
+
+        'recovery_codes' => 'Kurtarma Kodları',
+        'download_and_close' => 'İndir ve Kapat',
+        'recovery_codes_warning' => 'Önemli: Her kod sadece bir kez kullanılabilir. Telefonunuza erişiminizi kaybettiğinizde bu kodlarla giriş yapabilirsiniz.',
+        'recovery_codes_info' => 'Telefonunuza erişiminizi kaybettiğinizde bu kodları kullanabilirsiniz. Giriş yaparken bu kodlardan birisi kullanın.',
+
+        'account' => 'Hesap',
+        'generated_at' => 'Oluşturulma Tarihi',
+        'warning_save_securely' => 'UYARI: Bu kodları güvenli bir yerde saklayın!',
+        'each_code_once' => 'Her kod sadece bir kez kullanılabilir.',
+
+        'heading' => 'Kodunla doğrula',
+        'invalid_code' => 'Geçersiz doğrulama kodu.',
+        'code_label' => 'Kod',
+        'resend' => 'Tekrar Gönder',
+        'login' => 'Giriş Yap',
+
+        'resent_success' => 'Kod yeniden gönderildi.',
+        'too_many_attempts_title' => 'Çok Fazla Deneme',
+        'too_many_attempts_body'  => ':seconds saniye sonra tekrar deneyin.',
+        'code_expired' => 'Kodun süresi geçti, yeni kod isteyin.',
+        'please_enter_code' => 'Lütfen doğrulama kodunu girin.',
+    ],
+
+    'common' => [
+        'cancel' => 'İptal',
+        'continue' => 'İlerle',
+        'preparing' => 'Hazırlanıyor...',
+        'save' => 'Kaydet',
+        'close' => 'Kapat',
+        'download' => 'İndir',
+    ],
+
+    'notifications' => [
+        'success' => 'Başarılı!',
+        'error' => 'Hata!',
+        'warning' => 'Uyarı!',
+        'info' => 'Bilgi!',
+
+        // Account notifications
+        'account_updated' => 'Hesap bilgileriniz güncellendi.',
+        'account_update_failed' => 'Bilgiler güncellenirken bir hata oluştu.',
+        'current_password_incorrect' => 'Mevcut şifreniz yanlış.',
+        'password_changed' => 'Şifreniz başarıyla değiştirildi.',
+        'password_change_failed' => 'Şifre değiştirilirken bir hata oluştu.',
+
+        // 2FA notifications
+        'two_factor_already_enabled' => '2FA zaten etkinleştirilmiş durumda.',
+        'two_factor_already_disabled' => '2FA zaten devre dışı durumda.',
+        'select_two_factor_method' => 'Lütfen bir 2FA yöntemi seçin.',
+        'qr_code_ready' => 'QR Kod Hazır!',
+        'scan_qr_code' => 'Authenticator uygulamanız ile QR kodu tarayın.',
+        'authenticator_setup_failed' => 'Authenticator kurulumu başarısız oldu.',
+        'verification_code_send_failed' => 'Doğrulama kodu gönderilemedi.',
+        'code_sent' => 'Kod Gönderildi!',
+        'code_sent_to' => 'Doğrulama kodu :method ile gönderildi.',
+        'enter_six_digit_code' => 'Lütfen 6 haneli doğrulama kodunu girin.',
+        'invalid_verification_code' => 'Doğrulama kodu hatalı.',
+        'two_factor_enabled' => '2FA (:method) başarıyla etkinleştirildi.',
+        'two_factor_disabled' => '2FA devre dışı bırakıldı.',
+        'two_factor_disable_failed' => '2FA devre dışı bırakılırken bir hata oluştu.',
+        'recovery_codes_only_authenticator' => 'Kurtarma kodları sadece Authenticator için kullanılır.',
+        'recovery_codes_generated' => 'Yeni kurtarma kodları oluşturuldu.',
+        'recovery_codes_generation_failed' => 'Kurtarma kodları oluşturulurken bir hata oluştu.',
+        'recovery_codes_downloaded' => 'Kurtarma kodları indirildi ve kaydedildi.',
+    ],
+
+    'confirm' => 'Onayla',
+    'cancel' => 'İptal',
+    'approve' => 'Evet, Onayla',
+
+    'regenerate_codes_confirm' => 'Kurtarma kodlarını tekrar oluşturmak istediğinize emin misiniz? Mevcut kodlar geçersiz olacaktır!',
+
+    'disable_confirm' => 'İki faktörlü kimlik doğrulamayı devre dışı bırakmak istediğinize emin misiniz?',
+
+    'please_select_2fa' => 'Lütfen iki faktörlü kimlik doğrulama yöntemi seçiniz.',
+    'please_select_2fa_description' => 'Hesabınızın güvenliğini artırmak için iki faktörlü kimlik doğrulama ayarınızı yapmanız gerekmektedir.',
+
 ];

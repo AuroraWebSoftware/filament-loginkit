@@ -3,6 +3,8 @@
 namespace AuroraWebSoftware\FilamentLoginKit\Pages;
 
 use AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType;
+use AuroraWebSoftware\FilamentLoginKit\Notifications\SendOTP;
+use AuroraWebSoftware\FilamentLoginKit\Notifications\SmsLoginNotification;
 use Carbon\Carbon;
 use Filament\Forms\Components\{Grid, Radio, Section, TextInput};
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -10,7 +12,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\{Auth, Hash, Validator};
+use Illuminate\Support\Facades\{Auth, Hash};
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Actions\{
     ConfirmTwoFactorAuthentication,
@@ -18,94 +20,137 @@ use Laravel\Fortify\Actions\{
     EnableTwoFactorAuthentication,
     GenerateNewRecoveryCodes
 };
-use Laravel\Fortify\Features;
+use Ysfkaya\FilamentPhoneInput\Forms\PhoneInput;
 
 class Account extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    /* ---------------- Filament meta ---------------- */
     protected static string $view = 'filament-loginkit::account';
-    protected static ?string $navigationIcon  = 'heroicon-o-user-circle';
-    protected static ?string $navigationLabel = 'Hesap';
-    protected static ?string $title           = 'Hesap Ayarları';
 
-    /* ---------------- Form state dizileri ---------- */
-    public array $account   = [];
-    public array $password  = [];
+    protected static bool $shouldRegisterNavigation = false;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament-loginkit::filament-loginkit.navigation.account');
+    }
+
+    public function getTitle(): string
+    {
+        return __('filament-loginkit::filament-loginkit.account.title');
+    }
+
+    public array $account = [];
+
+    public array $password = [];
+
     public array $twoFactor = [];
 
-    /* ---------------- Diğer değişkenler ------------- */
     public $user;
-    public bool   $showingQrCode        = false;
-    public bool   $showingRecoveryCodes = false;
-    public bool   $showingConfirmation  = false;
-    public string $otpCode              = '';
+    public bool $show2faSetup = false;
+    public bool $showQrCode = false;
+    public bool $showRecoveryCodes = false;
+    public bool $showConfirmation = false;
+    public string $otpCode = '';
+    public string $selected2faType = '';
+    public bool $canEditAccount = true;
 
-    /* ---------------- Mount ------------------------- */
+
     public function mount(): void
     {
         $this->user = Auth::user();
 
         $this->account = [
-            'name'         => $this->user->name,
-            'email'        => $this->user->email,
+            'name' => $this->user->name,
+            'email' => $this->user->email,
             'phone_number' => $this->user->phone_number,
         ];
 
         $this->twoFactor = [
             'twoFactorType' => $this->user->two_factor_type ? TwoFactorType::from($this->user->two_factor_type)->value : null,
         ];
+        $this->canEditAccount = config('filament-loginkit.account_page.can_edit');
+
     }
 
-    /* ---------------- Çok-lu form kayıt ------------- */
+
     protected function getForms(): array
     {
         return ['accountForm', 'passwordForm', 'twoFactorForm'];
     }
 
-    /* ---------------- Form şemaları ----------------- */
     public function accountForm(Form $form): Form
     {
         return $form->schema([
-            Section::make('Kullanıcı Bilgileri')->schema([
-                Grid::make(3)->schema([
-                    TextInput::make('name')->label('İsim')->required(),
-                    TextInput::make('email')->label('E-posta')->email()->required(),
-                    TextInput::make('phone_number')->label('Telefon'),
+            Section::make(__('filament-loginkit::filament-loginkit.account.user_information'))
+                ->description(__('filament-loginkit::filament-loginkit.account.user_information_description'))
+                ->schema([
+                    Grid::make(3)->schema([
+                        TextInput::make('name')
+                            ->label(__('filament-loginkit::filament-loginkit.fields.name'))
+                            ->required()
+                            ->maxLength(255)
+                            ->disabled(fn() => !$this->canEditAccount),
+                        TextInput::make('email')
+                            ->label(__('filament-loginkit::filament-loginkit.fields.email'))
+                            ->email()
+                            ->required()
+                            ->maxLength(255)
+                            ->disabled(fn() => !$this->canEditAccount),
+                        PhoneInput::make('phone_number')
+                            ->label(__('filament-loginkit::filament-loginkit.sms.phone_label'))
+                            ->initialCountry('tr')
+                            ->countryOrder(['tr'])
+                            ->strictMode()
+                            ->required()
+                        ,
+                    ]),
                 ]),
-            ]),
         ])->statePath('account');
     }
+
 
     public function passwordForm(Form $form): Form
     {
         return $form->schema([
-            Section::make('Şifre Değiştir')->schema([
-                TextInput::make('current_password')
-                    ->label('Mevcut Şifre')->password()->required()->currentPassword(),
-                TextInput::make('new_password')
-                    ->label('Yeni Şifre')->password()->required()->rules([Password::defaults()]),
-                TextInput::make('new_password_confirmation')
-                    ->label('Yeni Şifre (Tekrar)')->password()->required()->same('new_password'),
-            ]),
+            Section::make(__('filament-loginkit::filament-loginkit.account.change_password'))
+                ->description(__('filament-loginkit::filament-loginkit.account.change_password_description'))
+                ->schema([
+                    Grid::make(1)->schema([
+                        TextInput::make('current_password')
+                            ->label(__('filament-loginkit::filament-loginkit.fields.current_password'))
+                            ->password()
+                            ->required()
+                            ->currentPassword(),
+                        TextInput::make('new_password')
+                            ->label(__('filament-loginkit::filament-loginkit.fields.new_password'))
+                            ->password()
+                            ->required()
+                            ->rules([Password::defaults()])
+                            ->helperText(__('filament-loginkit::filament-loginkit.fields.password_requirements')),
+                        TextInput::make('new_password_confirmation')
+                            ->label(__('filament-loginkit::filament-loginkit.fields.new_password_confirmation'))
+                            ->password()
+                            ->required()
+                            ->same('new_password'),
+                    ]),
+                ]),
         ])->statePath('password');
     }
 
     public function twoFactorForm(Form $form): Form
     {
         return $form->schema([
-            Section::make('İki Faktörlü Kimlik Doğrulama')
-                ->description('Hesabınızın güvenliğini artırmak için iki faktörlü kimlik doğrulamayı etkinleştirin.')
-                ->schema([
-                    Radio::make('twoFactorType')
-                        ->label('2FA Yöntemi Seçin')
-                        ->options($this->resolve2faOptions())
-                        ->descriptions($this->resolve2faDescriptions())
-                        ->inline()
-                        ->disabled($this->is2faEnabled())
-                        ->required(),
-                ]),
+            Radio::make('twoFactorType')
+                ->label(__('filament-loginkit::filament-loginkit.two_factor.method'))
+                ->options($this->resolve2faOptions())
+                ->descriptions($this->resolve2faDescriptions())
+                ->required()
+                ->inline(false)
+                ->live()
+                ->afterStateUpdated(function ($state) {
+                    $this->selected2faType = $state;
+                }),
         ])->statePath('twoFactor');
     }
 
@@ -116,7 +161,7 @@ class Account extends Page implements HasForms
 
         foreach ($enabledOptions as $option) {
             if ($option instanceof TwoFactorType) {
-                $options[$option->value] = $option->getLabel();
+                $options[$option->value] = __('filament-loginkit::filament-loginkit.two_factor.methods.' . $option->value);
             }
         }
 
@@ -126,13 +171,12 @@ class Account extends Page implements HasForms
     protected function resolve2faDescriptions(): array
     {
         return [
-            TwoFactorType::sms->value => 'Telefon numaranıza SMS ile kod gönderilir',
-            TwoFactorType::email->value => 'E-posta adresinize kod gönderilir',
-            TwoFactorType::authenticator->value => 'Google Authenticator veya benzeri uygulama kullanılır',
+            TwoFactorType::sms->value => __('filament-loginkit::filament-loginkit.two_factor.descriptions.sms'),
+            TwoFactorType::email->value => __('filament-loginkit::filament-loginkit.two_factor.descriptions.email'),
+            TwoFactorType::authenticator->value => __('filament-loginkit::filament-loginkit.two_factor.descriptions.authenticator'),
         ];
     }
 
-    /* ---------------- Blade'de rahat kullanım ------- */
     public function getCurrentTwoFactorTypeProperty(): ?string
     {
         return $this->twoFactor['twoFactorType'] ?? null;
@@ -143,196 +187,374 @@ class Account extends Page implements HasForms
         return $this->user->two_factor_confirmed_at !== null;
     }
 
-    public function canSendCode(): bool
+    public function getCurrentMethodName(): string
     {
-        return false; // Artık manuel kod gönderme yok
+        if (!$this->is2faEnabled()) {
+            return '';
+        }
+
+        return __('filament-loginkit::filament-loginkit.two_factor.methods.' . $this->user->two_factor_type);
     }
 
-    /* ============ Hesap & şifre işlemleri ============ */
     public function saveAccount(): void
     {
-        $this->user->update($this->account);
-        Notification::make()->title('Bilgiler güncellendi')->success()->send();
+        try {
+            $this->user->update($this->account);
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.success'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.account_updated'))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.account_update_failed'))
+                ->danger()
+                ->send();
+        }
     }
 
     public function changePassword(): void
     {
-        $data = $this->password;
+        try {
+            $data = $this->password;
 
-        if (! Hash::check($data['current_password'], $this->user->password)) {
-            Notification::make()->title('Mevcut şifre yanlış')->danger()->send();
+            if (!Hash::check($data['current_password'], $this->user->password)) {
+                Notification::make()
+                    ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
+                    ->body(__('filament-loginkit::filament-loginkit.notifications.current_password_incorrect'))
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            $this->user->update(['password' => Hash::make($data['new_password'])]);
+            $this->reset('password');
+
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.success'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.password_changed'))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.password_change_failed'))
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function start2faSetup(): void
+    {
+        if ($this->is2faEnabled()) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.info'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.two_factor_already_enabled'))
+                ->warning()
+                ->send();
             return;
         }
 
-        $this->user->update(['password' => Hash::make($data['new_password'])]);
-        $this->password = [];
-        Notification::make()->title('Şifre değiştirildi')->success()->send();
+        $this->show2faSetup = true;
+        $this->reset(['showQrCode', 'showRecoveryCodes', 'showConfirmation', 'otpCode']);
     }
 
-    /* ============ 2FA – kod gönderimi ================ */
-    private function sendCodeForType(string $type): void
+    public function cancel2faSetup(): void
     {
-        // 6 haneli kod
-        $code = (string) rand(100000, 999999);
-
-        $this->user->forceFill([
-            'two_factor_code'        => Hash::make($code),
-            'two_factor_expires_at'  => now()->addMinutes(10),
-        ])->save();
-
-        // Notification'ları ayır
-        if ($type === TwoFactorType::sms->value) {
-            $this->user->notify(new \AuroraWebSoftware\FilamentLoginKit\Notifications\SmsLoginNotification($code));
-        } elseif ($type === TwoFactorType::email->value) {
-            $this->user->notify(new \AuroraWebSoftware\FilamentLoginKit\Notifications\SendOTP($code));
-        }
-
-        $this->showingConfirmation = true;
-
-        $methodName = TwoFactorType::from($type)->getLabel();
-        Notification::make()
-            ->title("Doğrulama kodu {$methodName} ile gönderildi")
-            ->success()
-            ->send();
+        $this->reset([
+            'show2faSetup',
+            'showQrCode',
+            'showRecoveryCodes',
+            'showConfirmation',
+            'otpCode',
+            'selected2faType',
+            'twoFactor'
+        ]);
     }
 
-    /* ============ 2FA – etkinleştir ================ */
-    public function enable2fa(): void
+    public function proceed2faSetup(): void
     {
-        $type = $this->currentTwoFactorType;
+        $type = $this->twoFactor['twoFactorType'] ?? null;
 
         if (!$type) {
-            Notification::make()->title('Lütfen bir 2FA yöntemi seçin')->warning()->send();
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.warning'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.select_two_factor_method'))
+                ->warning()
+                ->send();
             return;
         }
 
-        if ($this->is2faEnabled()) {
-            Notification::make()->title('2FA zaten etkin')->warning()->send();
-            return;
-        }
-
-        // Türü kaydet
         $this->user->update(['two_factor_type' => $type]);
 
         if ($type === TwoFactorType::authenticator->value) {
-            // Fortify aksiyonu → secret + recovery
-            $this->enableTwoFactorAuthentication(app(EnableTwoFactorAuthentication::class));
+            $this->setup2faAuthenticator();
         } else {
-            // sms / email ⇒ otomatik kod gönder
+            $this->setup2faCodeBased($type);
+        }
+    }
+
+    private function setup2faAuthenticator(): void
+    {
+        try {
+            $enableAction = app(EnableTwoFactorAuthentication::class);
+            $enableAction($this->user);
+
+            $this->showQrCode = true;
+            $this->showConfirmation = true;
+
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.qr_code_ready'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.scan_qr_code'))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.authenticator_setup_failed'))
+                ->danger()
+                ->send();
+        }
+    }
+
+    private function setup2faCodeBased(string $type): void
+    {
+        try {
             $this->sendCodeForType($type);
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.verification_code_send_failed'))
+                ->danger()
+                ->send();
+        }
+    }
+
+    private function sendCodeForType(string $type): void
+    {
+        $len = config('filament-loginkit.account_page.code_length', 6);
+        $code = str_pad(random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
+
+        $ttl  = config('filament-loginkit.account_page.2fa.code_ttl', 5);
+        $this->user->forceFill([
+            'two_factor_code'       => Hash::make($code),
+            'two_factor_expires_at' => now()->addMinutes($ttl),
+        ])->save();
+
+        if ($type === TwoFactorType::sms->value) {
+            if (config('filament-loginkit.queue_notifications', true)) {
+                $this->user->notify(new SmsLoginNotification($code));
+            } else {
+                $this->user->notifyNow(new SmsLoginNotification($code));
+            }
+        } elseif ($type === TwoFactorType::email->value) {
+            if (config('filament-loginkit.queue_notifications', true)) {
+                $this->user->notify(new SendOTP($code));
+            } else {
+                $this->user->notifyNow(new SendOTP($code));
+            }
         }
 
-        $methodName = TwoFactorType::from($type)->getLabel();
+        $this->showConfirmation = true;
+
+        $methodName = __('filament-loginkit::filament-loginkit.two_factor.methods.' . $type);
         Notification::make()
-            ->title("2FA ({$methodName}) kurulumu başlatıldı")
+            ->title(__('filament-loginkit::filament-loginkit.notifications.code_sent'))
+            ->body(__('filament-loginkit::filament-loginkit.notifications.code_sent_to', ['method' => $methodName]))
             ->success()
             ->send();
     }
 
-    /* ============ 2FA – doğrulama & tamamla ========= */
-    public function confirmTwoFactorAuthentication(ConfirmTwoFactorAuthentication $fortify): void
+    public function confirmTwoFactorAuthentication(): void
     {
-        if (!$this->otpCode) {
-            Notification::make()->title('Lütfen doğrulama kodunu girin')->warning()->send();
+        if (!$this->otpCode || strlen($this->otpCode) !== 6) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.warning'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.enter_six_digit_code'))
+                ->warning()
+                ->send();
             return;
         }
 
         $type = $this->user->two_factor_type;
 
-        if ($type === TwoFactorType::authenticator->value) {
-            try {
-                // Fortify kod doğrulaması
-                $fortify($this->user, $this->otpCode);
-                $this->showingQrCode = false;
-            } catch (\Exception $e) {
-                Notification::make()->title('Authenticator kodu hatalı')->danger()->send();
-                return;
+        try {
+            if ($type === TwoFactorType::authenticator->value) {
+                $this->confirmAuthenticatorCode();
+            } else {
+                $this->confirmCodeBasedAuth();
             }
-        } else {
-            // sms / email kodu
-            if (
-                !$this->user->two_factor_code ||
-                !Hash::check($this->otpCode, $this->user->two_factor_code) ||
-                Carbon::parse($this->user->two_factor_expires_at)->isPast()
-            ) {
-                Notification::make()->title('Kod hatalı veya süresi geçti')->danger()->send();
-                return;
-            }
-        }
 
-        // Ortak başarı yolu
+            $this->complete2faSetup();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.invalid_verification_code'))
+                ->danger()
+                ->send();
+        }
+    }
+
+    private function confirmAuthenticatorCode(): void
+    {
+        $confirmAction = app(ConfirmTwoFactorAuthentication::class);
+        $confirmAction($this->user, $this->otpCode);
+    }
+
+    private function confirmCodeBasedAuth(): void
+    {
+        if (
+            !$this->user->two_factor_code ||
+            !Hash::check($this->otpCode, $this->user->two_factor_code) ||
+            Carbon::parse($this->user->two_factor_expires_at)->isPast()
+        ) {
+            throw new \Exception('Invalid or expired code');
+        }
+    }
+
+    private function complete2faSetup(): void
+    {
         $this->user->forceFill([
             'two_factor_confirmed_at' => now(),
-            'two_factor_code'         => null,
-            'two_factor_expires_at'   => null,
+            'two_factor_code' => null,
+            'two_factor_expires_at' => null,
         ])->save();
 
-        $this->reset('otpCode');
-        $this->showingConfirmation  = false;
-        $this->showingRecoveryCodes = ($type === TwoFactorType::authenticator->value);
+        $methodName = __('filament-loginkit::filament-loginkit.two_factor.methods.' . $this->user->two_factor_type);
 
-        $methodName = TwoFactorType::from($type)->getLabel();
+        if ($this->user->two_factor_type === TwoFactorType::authenticator->value) {
+            $this->showRecoveryCodes = true;
+        }
+
+        $this->reset([
+            'show2faSetup',
+            'showQrCode',
+            'showConfirmation',
+            'otpCode',
+            'twoFactor'
+        ]);
+
         Notification::make()
-            ->title("2FA ({$methodName}) başarıyla onaylandı")
+            ->title(__('filament-loginkit::filament-loginkit.notifications.success'))
+            ->body(__('filament-loginkit::filament-loginkit.notifications.two_factor_enabled', ['method' => $methodName]))
+            ->success()
+            ->duration(5000)
+            ->send();
+    }
+
+    public function disable2fa(): void
+    {
+        if (!$this->is2faEnabled()) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.info'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.two_factor_already_disabled'))
+                ->warning()
+                ->send();
+            return;
+        }
+
+        try {
+            if ($this->user->two_factor_type === TwoFactorType::authenticator->value) {
+                $disableAction = app(DisableTwoFactorAuthentication::class);
+                $disableAction($this->user);
+            }
+
+            $this->user->forceFill([
+                'two_factor_type' => null,
+                'two_factor_code' => null,
+                'two_factor_expires_at' => null,
+                'two_factor_confirmed_at' => null,
+            ])->save();
+
+            $this->reset([
+                'show2faSetup',
+                'showQrCode',
+                'showRecoveryCodes',
+                'showConfirmation',
+                'twoFactor'
+            ]);
+
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.success'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.two_factor_disabled'))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.two_factor_disable_failed'))
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function regenerateRecoveryCodes(): void
+    {
+        if ($this->user->two_factor_type !== TwoFactorType::authenticator->value) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.warning'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.recovery_codes_only_authenticator'))
+                ->warning()
+                ->send();
+            return;
+        }
+
+        try {
+            $generateAction = app(GenerateNewRecoveryCodes::class);
+            $generateAction($this->user);
+
+            $this->showRecoveryCodes = true;
+
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.success'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.recovery_codes_generated'))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
+                ->body(__('filament-loginkit::filament-loginkit.notifications.recovery_codes_generation_failed'))
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function downloadRecoveryCodes(): void
+    {
+        if ($this->user->two_factor_type !== TwoFactorType::authenticator->value) {
+            return;
+        }
+
+        $codes = $this->user->recoveryCodes();
+        $content = "# " . config('app.name') . " - " . __('filament-loginkit::filament-loginkit.two_factor.recovery_codes') . "\n\n";
+        $content .= __('filament-loginkit::filament-loginkit.two_factor.account') . ": " . $this->user->email . "\n";
+        $content .= __('filament-loginkit::filament-loginkit.two_factor.generated_at') . ": " . now()->format('d.m.Y H:i') . "\n\n";
+        $content .= __('filament-loginkit::filament-loginkit.two_factor.warning_save_securely') . "\n";
+        $content .= __('filament-loginkit::filament-loginkit.two_factor.each_code_once') . "\n\n";
+        $content .= __('filament-loginkit::filament-loginkit.two_factor.recovery_codes') . ":\n";
+        $content .= "==================\n\n";
+
+        foreach ($codes as $index => $code) {
+            $content .= ($index + 1) . ". " . $code . "\n";
+        }
+
+        $this->dispatch('download-recovery-codes', [
+            'filename' => 'recovery-codes-' . now()->format('Y-m-d') . '.txt',
+            'content' => $content
+        ]);
+
+        $this->showRecoveryCodes = false;
+
+        Notification::make()
+            ->title(__('filament-loginkit::filament-loginkit.notifications.success'))
+            ->body(__('filament-loginkit::filament-loginkit.notifications.recovery_codes_downloaded'))
             ->success()
             ->send();
     }
 
-    /* ============ 2FA – devre dışı bırak ============ */
-    public function disable2fa(DisableTwoFactorAuthentication $fortify): void
+    public function hideRecoveryCodes(): void
     {
-        if (!$this->is2faEnabled()) {
-            Notification::make()->title('2FA zaten devre dışı')->warning()->send();
-            return;
-        }
-
-        // Authenticator kullanıldıysa secret + recovery temizle
-        if ($this->user->two_factor_type === TwoFactorType::authenticator->value) {
-            $fortify($this->user);
-        }
-
-        $this->user->forceFill([
-            'two_factor_type'         => null,
-            'two_factor_code'         => null,
-            'two_factor_expires_at'   => null,
-            'two_factor_confirmed_at' => null,
-        ])->save();
-
-        $this->reset(['showingQrCode', 'showingRecoveryCodes', 'showingConfirmation']);
-
-        // Form state'ini de güncelle
-        $this->twoFactor['twoFactorType'] = null;
-
-        Notification::make()->title('2FA devre dışı bırakıldı')->success()->send();
-    }
-
-    /* ============ Kurtarma kodları yenile ============ */
-    public function regenerateRecoveryCodes(GenerateNewRecoveryCodes $gen): void
-    {
-        if ($this->user->two_factor_type !== TwoFactorType::authenticator->value) {
-            Notification::make()->title('Kurtarma kodları sadece Authenticator için kullanılır')->warning()->send();
-            return;
-        }
-
-        $gen($this->user);
-        $this->showingRecoveryCodes = true;
-        Notification::make()->title('Yeni kurtarma kodları oluşturuldu')->success()->send();
-    }
-
-    /* ============ Fortify yardımcıları (QR) ========== */
-    protected function enableTwoFactorAuthentication(EnableTwoFactorAuthentication $en): void
-    {
-        $en($this->user);
-
-        $this->user->update(['two_factor_type' => TwoFactorType::authenticator->value]);
-
-        $this->showingQrCode       = true;
-        $this->showingConfirmation = Features::optionEnabled(
-            Features::twoFactorAuthentication(), 'confirm'
-        );
-
-        if (!$this->showingConfirmation) {
-            $this->showingRecoveryCodes = true;
-        }
+        $this->showRecoveryCodes = false;
     }
 }

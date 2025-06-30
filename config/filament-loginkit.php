@@ -10,11 +10,12 @@ use AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\RequestPasswordReset;
 
 return [
 
-    'email_login' => true,
+    'email_login' => env('LOGINKIT_EMAIL_LOGIN_ENABLED', true),
 
-    'sms_login' => false,
+    'sms_login' => env('LOGINKIT_SMS_LOGIN_ENABLED', false),
 
     'reset_password_enabled' => true,
+
     /*
     |--------------------------------------------------------------------------
     | Two Factor Authentication
@@ -23,7 +24,7 @@ return [
     | This value determines which two factor authentication options are available.
     | Simply add or remove the options you want to use.
     |
-    | Available options: email, phone, authenticator
+    | Available options: email, sms, authenticator
     |
     */
     'options' => [
@@ -34,7 +35,7 @@ return [
 
     'email_view' => null,
 
-    'email_app_name' => config('app.name', 'Hadi Öde'),
+    'email_app_name' => config('app.name', 'filament-loginkit'),
 
     'enabled_features' => [
         /*
@@ -59,9 +60,7 @@ return [
         */
         'multi_tenancy' => false,
 
-        'ip_rate_limit' => env('LOGIN_KIT_IP_LIMIT', false),
-
-        'sms_queue' => env('LOGIN_KIT_SMS_QUEUE', true),
+//        'ip_rate_limit' => env('LOGIN_KIT_IP_LIMIT', false),
 
 //        'generic_errors' => env('LOGIN_KIT_GENERIC_ERR', false),
         'generic_errors' => false,
@@ -82,11 +81,19 @@ return [
     'send_otp_class' => \AuroraWebSoftware\FilamentLoginKit\Notifications\SendOTP::class,
     'phone_number_field' => 'phone',
 
+    'queue_notifications' => env('LOGINKIT_QUEUE_NOTIFICATIONS', true),
+    'email_queue' => env('LOGINKIT_EMAIL_QUEUE', 'filament-loginkit'),
+    'sms_queue' => env('LOGINKIT_SMS_QUEUE', 'filament-loginkit'),
+
+    'notification_max_tries' => 1,
+    'notification_retry_delay' => 30,
+    'notification_backoff' => 0,
+
 
     'turnstile' => [
-        'enabled' => env('TURNSTILE_ENABLED', false),
-        'sitekey' => env('TURNSTILE_SITEKEY'),
-        'secret' => env('TURNSTILE_SECRET'),
+        'enabled' => env('LOGINKIT_TURNSTILE_ENABLED', false),
+        'sitekey' => env('LOGINKIT_TURNSTILE_SITEKEY'),
+        'secret' => env('LOGINKIT_TURNSTILE_SECRET'),
     ],
 
     'rate_limits' => [
@@ -108,10 +115,10 @@ return [
         ],
     ],
 
-    'ip_limit' => [
-        'max_attempts' => env('LOGIN_KIT_IP_MAX', 20),
-        'decay_minutes' => env('LOGIN_KIT_IP_TTL', 1),
-    ],
+//    'ip_limit' => [
+//        'max_attempts' => env('LOGIN_KIT_IP_MAX', 20),
+//        'decay_minutes' => env('LOGIN_KIT_IP_TTL', 1),
+//    ],
 
     'sms' => [
         'code_length' => 6,
@@ -121,6 +128,8 @@ return [
         'max_wrong_attempts' => 5,
 
         'wrong_attempt_decay' => 300,
+
+        'resend_cooldown' => 90,
 
         'flood' => [
             'max_per_window' => 10,
@@ -132,6 +141,22 @@ return [
             'window_minutes' => 10,
         ],
     ],
+
+    'brand_logo' => env('FILAMENT_BRAND_LOGO'),
+
+    'email' => [
+        'from_name' => env('MAIL_FROM_NAME', config('app.name')),
+        'from_address' => env('MAIL_FROM_ADDRESS', 'noreply@example.com'),
+    ],
+
+    'account_page' => [
+        'can_edit' => env('LOGINKIT_ACCOUNT_PAGE_CAN_EDIT', true),
+        '2fa' => [
+            'code_length' => 6,
+            'code_ttl'    => 5,
+        ]
+    ],
+
 
     /*
     |--------------------------------------------------------------------------

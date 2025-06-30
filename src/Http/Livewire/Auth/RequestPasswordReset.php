@@ -20,7 +20,6 @@ class RequestPasswordReset extends Page implements HasForms
 
     public function mount(): void
     {
-        dd(3);
         if (Filament::auth()->check()) {
             redirect()->intended(Filament::getCurrentPanel()?->getUrl() ?? config('fortify.home'));
         }
@@ -54,7 +53,6 @@ class RequestPasswordReset extends Page implements HasForms
 
     public function render(): View
     {
-        dd(4);
         return view('filament-loginkit::auth.request-password-reset', $this->getViewData())
             ->layout($this->getLayout(), [
                 'livewire' => $this,

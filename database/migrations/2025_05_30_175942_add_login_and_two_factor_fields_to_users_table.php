@@ -13,7 +13,7 @@ return new class extends Migration {
                 if (!Schema::hasColumn('users', 'phone_number')) {
                     $table->string('phone_number')->nullable();
                 }
-                $table->string('two_factor_type')->default('email');
+                $table->string('two_factor_type')->nullable();
                 $table->boolean('is_2fa_required')->default(true);
                 $table->string('sms_login_code')->nullable();
                 $table->timestamp('sms_login_expires_at')->nullable();

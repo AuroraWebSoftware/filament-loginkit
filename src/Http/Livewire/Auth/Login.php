@@ -3,6 +3,8 @@
 namespace AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth;
 
 use App\Models\User;
+use AuroraWebSoftware\FilamentLoginKit\Http\Middleware\RedirectIfTwoFactorAuthenticatable;
+use AuroraWebSoftware\FilamentLoginKit\Http\Responses\LoginResponse;
 use AuroraWebSoftware\FilamentLoginKit\Notifications\SmsLoginNotification;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Actions\Action;
@@ -31,47 +33,52 @@ use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Livewire\Features\SupportRedirects\Redirector;
-use AuroraWebSoftware\FilamentLoginKit\Http\Middleware\RedirectIfTwoFactorAuthenticatable;
-use AuroraWebSoftware\FilamentLoginKit\Http\Responses\LoginResponse;
+use Ysfkaya\FilamentPhoneInput\Forms\PhoneInput;
 
 class Login extends BaseLogin
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
     protected static string $view = 'filament-loginkit::auth.login';
 
     public string $email = '';
+
     public string $password = '';
     public string $loginTab = 'email';
-
     public bool $showSmsCode = false;
     public string $phone_number = '';
     public string $sms_code = '';
+    public int $countdown = 0;
 
+    public bool $canResend = false;
     public string $turnstileToken = '';
-    public string $turnstileTokenSms = '';
 
+    public string $turnstileTokenSms = '';
     public ?array $phoneData = [];
     public ?array $codeData = [];
-
     public bool $resetPasswordEnabled = true;
     public bool $registrationEnabled = false;
-
     public int $maxSmsAttempts;
+
     public int $smsAttemptDecay;
+
 
     public function mount(): void
     {
         parent::mount();
 
         $this->resetPasswordEnabled = Features::enabled(Features::resetPasswords());
-        $this->registrationEnabled  = Features::enabled(Features::registration());
+        $this->registrationEnabled = Features::enabled(Features::registration());
 
         if (session('status')) {
             Notification::make()->title(session('status'))->success()->send();
         }
 
-        $this->maxSmsAttempts  = config('filament-loginkit.sms.max_wrong_attempts');
+        $this->maxSmsAttempts = config('filament-loginkit.sms.max_wrong_attempts');
         $this->smsAttemptDecay = config('filament-loginkit.sms.wrong_attempt_decay');
+
+        $this->getSmsPhoneForm()->fill();
+
     }
 
     public function getHeading(): string
@@ -79,13 +86,34 @@ class Login extends BaseLogin
         return '';
     }
 
-    /* --------------------------------------------------------------------- */
-    /*  Yardımcılar                                                          */
-    /* --------------------------------------------------------------------- */
+    // Login.php
+
+    public function startCountdown(): void
+    {
+        $seconds = config('filament-loginkit.sms.resend_cooldown', 90);
+
+        $this->countdown = $seconds;
+        $this->canResend = false;
+
+        $this->dispatch('start-countdown', seconds: $seconds);
+    }
+
+
+    public function resetCountdown(): void
+    {
+        $this->countdown = 0;
+        $this->canResend = true;
+    }
+
+    public function updateCountdown(int $value): void
+    {
+        $this->countdown = $value;
+        $this->canResend = $value <= 0;
+    }
 
     private function cacheIncrement(string $key, int $ttl): int
     {
-        if (! Cache::has($key)) {
+        if (!Cache::has($key)) {
             Cache::put($key, 1, $ttl);
             return 1;
         }
@@ -93,42 +121,42 @@ class Login extends BaseLogin
         return Cache::get($key);
     }
 
-    private function ipThrottle(string $suffix): bool
-    {
-        if (! config('filament-loginkit.enabled_features.ip_rate_limit')) {
-            return true;
-        }
+//    private function ipThrottle(string $suffix): bool
+//    {
+//        if (!config('filament-loginkit.enabled_features.ip_rate_limit')) {
+//            return true;
+//        }
+//
+//        $ip = request()->ip();
+//        $settings = config('filament-loginkit.ip_limit');
+//        $key = "ip_limit:{$ip}:{$suffix}";
+//        $attempts = $this->cacheIncrement($key, $settings['decay_minutes'] * 60);
+//
+//        if ($attempts > $settings['max_attempts']) {
+//            Notification::make()
+//                ->title(__('filament-loginkit::filament-loginkit.ip.limited_title'))
+//                ->body(__('filament-loginkit::filament-loginkit.ip.limited_body'))
+//                ->danger()
+//                ->send();
+//            return false;
+//        }
+//        return true;
+//    }
 
-        $ip        = request()->ip();
-        $settings  = config('filament-loginkit.ip_limit');
-        $key       = "ip_limit:{$ip}:{$suffix}";
-        $attempts  = $this->cacheIncrement($key, $settings['decay_minutes'] * 60);
-
-        if ($attempts > $settings['max_attempts']) {
-            Notification::make()
-                ->title(__('filament-loginkit::filament-loginkit.ip.limited_title'))
-                ->body(__('filament-loginkit::filament-loginkit.ip.limited_body'))
-                ->danger()
-                ->send();
-            return false;
-        }
-        return true;
-    }
-
-    private function errorNotify(string $key, array $params = []): void
+    private function errorNotify(string $key, string $type = 'email', array $params = []): void
     {
         if (config('filament-loginkit.enabled_features.generic_errors')) {
             Notification::make()
-                ->title(__('filament-loginkit::filament-loginkit.sms.generic_fail_title'))
-                ->body(__('filament-loginkit::filament-loginkit.sms.generic_fail_body'))
+                ->title(__('filament-loginkit::filament-loginkit.generic_fail_title'))
+                ->body(__('filament-loginkit::filament-loginkit.generic_fail_body'))
                 ->danger()
                 ->send();
             return;
         }
 
         Notification::make()
-            ->title(__("filament-loginkit::filament-loginkit.sms.{$key}_title"))
-            ->body(__("filament-loginkit::filament-loginkit.sms.{$key}_body", $params))
+            ->title(__("filament-loginkit::filament-loginkit.{$type}.{$key}_title"))
+            ->body(__("filament-loginkit::filament-loginkit.{$type}.{$key}_body", $params))
             ->danger()
             ->send();
     }
@@ -141,12 +169,15 @@ class Login extends BaseLogin
 
     private function dispatchSms(User $user, string $code): void
     {
-        $n = new SmsLoginNotification($code);
+        $locale = app()->getLocale();
 
-        if (config('filament-loginkit.enabled_features.sms_queue')) {
-            $user->notify($n);
+        $notification = new SmsLoginNotification($code, null, null, $locale);
+        $notification->locale($locale);
+
+        if (config('filament-loginkit.queue_notifications')) {
+            $user->notify($notification);
         } else {
-            $user->notifyNow($n);
+            $user->notifyNow($notification);
         }
     }
 
@@ -156,7 +187,7 @@ class Login extends BaseLogin
             $res = Http::timeout(10)
                 ->asForm()
                 ->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-                    'secret'   => config('filament-loginkit.turnstile.secret'),
+                    'secret' => config('filament-loginkit.turnstile.secret'),
                     'response' => $token,
                     'remoteip' => request()->ip(),
                 ]);
@@ -168,22 +199,27 @@ class Login extends BaseLogin
         }
     }
 
-    private function verifyTurnstileOrNotify(?string $token): bool
+    private function verifyTurnstileOrNotify(?string $token, string $property = 'turnstileToken'): bool
     {
-        if (blank($token) || ! $this->verifyTurnstile($token)) {
+        if (blank($token) || !$this->verifyTurnstile($token)) {
+            $this->resetTurnstile($property);
+
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.sms.captcha_failed_title'))
                 ->body(__('filament-loginkit::filament-loginkit.sms.captcha_failed_body'))
                 ->danger()
                 ->send();
+
             return false;
         }
         return true;
     }
 
-    /* --------------------------------------------------------------------- */
-    /*  Form Şemaları                                                         */
-    /* --------------------------------------------------------------------- */
+    private function resetTurnstile(string $property = 'turnstileToken'): void
+    {
+        $this->{$property} = '';
+        $this->dispatch('resetTurnstile');
+    }
 
     public function getSmsPhoneForm(): Form
     {
@@ -209,6 +245,7 @@ class Login extends BaseLogin
                 ->required()
                 ->autocomplete(),
 
+
             TextInput::make('password')
                 ->extraInputAttributes(['name' => 'password'])
                 ->label(__('filament::login.fields.password.label'))
@@ -224,13 +261,13 @@ class Login extends BaseLogin
     protected function getSmsPhoneSchema(): array
     {
         return [
-            TextInput::make('phone_number')
+            PhoneInput::make('phone_number')
                 ->label(__('filament-loginkit::filament-loginkit.sms.phone_label'))
-                ->tel()
+                ->initialCountry('tr')
+                ->countryOrder(['tr'])
+                ->strictMode()
                 ->required()
-                ->rules(['regex:/^\+90\s?5\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/'])
-                ->autocomplete('tel')
-                ->extraInputAttributes(['name' => 'phone_number']),
+            ,
         ];
     }
 
@@ -251,68 +288,65 @@ class Login extends BaseLogin
                     ]),
                 ])
                 ->extraInputAttributes([
-                    'name'      => 'sms_code',
+                    'name' => 'sms_code',
                     'maxlength' => $len,
-                    'pattern'   => "[0-9]{{$len}}",
+                    'pattern' => "[0-9]{{$len}}",
                 ]),
         ];
     }
 
-    /* --------------------------------------------------------------------- */
-    /*  SMS Kod Gönderme / Yeniden Gönderme                                   */
-    /* --------------------------------------------------------------------- */
-
     public function sendSmsCode(): void
     {
-        if (! $this->ipThrottle('send_sms')) {
-            return;
-        }
+//        if (!$this->ipThrottle('send_sms')) {
+//            return;
+//        }
 
         $limits = config('filament-loginkit.rate_limits.sms');
 
         try {
             $this->rateLimit($limits['max_requests'], $limits['per_minutes'] * 60);
         } catch (TooManyRequestsException $e) {
-            $this->errorNotify('too_many_attempts', ['seconds' => $e->secondsUntilAvailable ?? 60]);
+            $this->errorNotify('too_many_attempts', 'sms', ['seconds' => $e->secondsUntilAvailable ?? 60]);
             return;
         }
 
         $this->phone_number = $this->getSmsPhoneForm()->getState()['phone_number'] ?? '';
-        $user               = User::where('phone_number', $this->phone_number)->first();
+        $user = User::where('phone_number', $this->phone_number)->first();
 
-        if (! $user) {
-            $this->errorNotify('not_found');
+        if (!$user) {
+            $this->errorNotify('not_found', 'sms');
             return;
         }
 
-        $floodKey    = 'sms_flood:' . md5($this->phone_number);
+        $floodKey = 'sms_flood:' . md5($this->phone_number);
         $floodWindow = config('filament-loginkit.sms.flood.window_minutes');
 
         if ($this->cacheIncrement($floodKey, $floodWindow * 60) >
             config('filament-loginkit.sms.flood.max_per_window')) {
-            $this->errorNotify('too_many_requests');
+            $this->errorNotify('too_many_requests', 'sms');
             return;
         }
 
         if (config('filament-loginkit.turnstile.enabled') &&
-            ! $this->verifyTurnstileOrNotify($this->turnstileTokenSms)) {
+            !$this->verifyTurnstileOrNotify($this->turnstileTokenSms)) {
+            return;
+        }
+
+        if ($user->sms_login_expires_at && now()->lessThan($user->sms_login_expires_at)) {
+
+            $this->showSmsCode = true;
+            $this->startCountdown();
             return;
         }
 
         $code = $this->generateSmsCode();
 
         $user->update([
-            'sms_login_code'      => Hash::make($code),
-            'sms_login_expires_at'=> now()->addMinutes(config('filament-loginkit.sms.code_ttl')),
+            'sms_login_code' => Hash::make($code),
+            'sms_login_expires_at' => now()->addMinutes(config('filament-loginkit.sms.code_ttl')),
         ]);
 
-        // $this->dispatchSms($user, $code);
-
-        Notification::make()
-            ->title(__('filament-loginkit::filament-loginkit.sms.code'))
-            ->body($code)
-            ->success()
-            ->send();
+        $this->dispatchSms($user, $code);
 
         Notification::make()
             ->title(__('filament-loginkit::filament-loginkit.sms.sent_title'))
@@ -320,36 +354,38 @@ class Login extends BaseLogin
             ->success()
             ->send();
 
-        $this->showSmsCode   = true;
+        $this->showSmsCode = true;
         $this->turnstileTokenSms = '';
 
-        $this->dispatch('smsCodeSent');
+        $this->startCountdown();
+
+        $this->dispatch('resetTurnstile');
     }
 
     public function resendSmsCode(): void
     {
-        if (! $this->ipThrottle('resend_sms')) {
-            return;
-        }
+//        if (!$this->ipThrottle('resend_sms')) {
+//            return;
+//        }
 
         $limits = config('filament-loginkit.rate_limits.sms_resend');
 
         try {
             $this->rateLimit($limits['max_requests'], $limits['per_minutes'] * 60);
         } catch (TooManyRequestsException $e) {
-            $this->errorNotify('resend_too_many', ['seconds' => $e->secondsUntilAvailable ?? 60]);
+            $this->errorNotify('resend_too_many', 'sms', ['seconds' => $e->secondsUntilAvailable ?? 60]);
             return;
         }
 
         if (blank($this->phone_number)) {
-            $this->errorNotify('invalid_session');
+            $this->errorNotify('invalid_session', 'sms');
             return;
         }
 
         $user = User::where('phone_number', $this->phone_number)->first();
 
-        if (! $user) {
-            $this->errorNotify('generic');
+        if (!$user) {
+            $this->errorNotify('generic', 'sms');
             return;
         }
 
@@ -357,38 +393,40 @@ class Login extends BaseLogin
 
         if (Cache::get($floodKey, 0) >=
             config('filament-loginkit.sms.flood.max_per_window')) {
-            $this->errorNotify('too_many_requests');
+            $this->errorNotify('too_many_requests', 'sms');
             return;
         }
 
-        $resendKey    = 'sms_resend:' . md5($this->phone_number);
+        $resendKey = 'sms_resend:' . md5($this->phone_number);
         $resendWindow = config('filament-loginkit.sms.resend.window_minutes');
 
         if ($this->cacheIncrement($resendKey, $resendWindow * 60) >
             config('filament-loginkit.sms.resend.max_requests')) {
-            $this->errorNotify('resend_limit', ['window_minutes' => $resendWindow]);
+            $this->errorNotify('resend_limit', 'sms', ['window_minutes' => $resendWindow]);
             return;
         }
+        if ($user->sms_login_expires_at && now()->lessThan($user->sms_login_expires_at)) {
+
+            $this->startCountdown();
+            return;
+        }
+
 
         $code = $this->generateSmsCode();
 
         $user->update([
-            'sms_login_code'      => Hash::make($code),
-            'sms_login_expires_at'=> now()->addMinutes(config('filament-loginkit.sms.code_ttl')),
+            'sms_login_code' => Hash::make($code),
+            'sms_login_expires_at' => now()->addMinutes(config('filament-loginkit.sms.code_ttl')),
         ]);
 
-        // $this->dispatchSms($user, $code);
-
-        Notification::make()
-            ->title(__('filament-loginkit::filament-loginkit.sms.code'))
-            ->body($code)
-            ->success()
-            ->send();
+        $this->dispatchSms($user, $code);
 
         $this->cacheIncrement(
             $floodKey,
             config('filament-loginkit.sms.flood.window_minutes') * 60
         );
+
+        $this->startCountdown();
 
         Notification::make()
             ->title(__('filament-loginkit::filament-loginkit.sms.resent_title'))
@@ -397,20 +435,16 @@ class Login extends BaseLogin
             ->send();
     }
 
-    /* --------------------------------------------------------------------- */
-    /*  SMS ile Giriş                                                        */
-    /* --------------------------------------------------------------------- */
-
     public function loginWithSms()
     {
-        if (! $this->ipThrottle('login_sms')) {
-            return;
-        }
+//        if (!$this->ipThrottle('login_sms')) {
+//            return;
+//        }
 
         $this->sms_code = $this->getSmsCodeForm()->getState()['sms_code'] ?? '';
 
         $loginSucceeded = false;
-        $user           = null;
+        $user = null;
 
         DB::transaction(function () use (&$loginSucceeded, &$user) {
             $user = User::where('phone_number', $this->phone_number)
@@ -418,28 +452,28 @@ class Login extends BaseLogin
                 ->lockForUpdate()
                 ->first();
 
-            if (! $user || ! Hash::check($this->sms_code, $user->sms_login_code)) {
+            if (!$user || !Hash::check($this->sms_code, $user->sms_login_code)) {
                 return;
             }
 
             $user->update([
-                'sms_login_code'      => null,
-                'sms_login_expires_at'=> null,
+                'sms_login_code' => null,
+                'sms_login_expires_at' => null,
             ]);
 
             $loginSucceeded = true;
         });
 
-        if (! $loginSucceeded) {
+        if (!$loginSucceeded) {
             $wrongKey = 'sms_wrong:' . md5($this->phone_number);
             $attempts = $this->cacheIncrement($wrongKey, $this->smsAttemptDecay);
 
             if ($attempts >= $this->maxSmsAttempts) {
-                $this->errorNotify('max_wrong');
+                $this->errorNotify('max_wrong', 'sms');
                 return null;
             }
 
-            $this->errorNotify('invalid_code');
+            $this->errorNotify('invalid_code', 'sms');
             return null;
         }
 
@@ -455,10 +489,6 @@ class Login extends BaseLogin
         return app(LoginResponse::class);
     }
 
-    /* --------------------------------------------------------------------- */
-    /*  E-posta + Şifre (Fortify)                                             */
-    /* --------------------------------------------------------------------- */
-
     public function loginWithFortify(): LoginResponse|Redirector|Response|null
     {
         $limits = config('filament-loginkit.rate_limits.login');
@@ -466,21 +496,26 @@ class Login extends BaseLogin
         try {
             $this->rateLimit($limits['max_requests'], $limits['per_minutes'] * 60);
         } catch (TooManyRequestsException $e) {
-            $this->errorNotify('too_many_attempts', ['seconds' => $e->secondsUntilAvailable ?? 60]);
+            $this->errorNotify('too_many_attempts', 'email', ['seconds' => $e->secondsUntilAvailable ?? 60]);
             return null;
         }
 
         if (config('filament-loginkit.turnstile.enabled') &&
-            ! $this->verifyTurnstileOrNotify($this->turnstileToken)) {
+            !$this->verifyTurnstileOrNotify($this->turnstileToken)) {
             return null;
         }
 
         $data = $this->form->getState();
-        $req  = request()->merge($data);
-
+        if (!$this->validateCredentials($this->getCredentialsFromFormData($data))) {
+            $this->errorNotify('invalid_credentials');
+            $this->dispatch('resetTurnstile');
+            return null;
+        }
+        $req = request()->merge($data);
+//        dd($req);
         return $this->loginPipeline($req)->then(function () use ($data) {
 
-            if (! Filament::auth()->attempt(
+            if (!Filament::auth()->attempt(
                 $this->getCredentialsFromFormData($data),
                 $data['remember'] ?? false
             )) {
@@ -489,9 +524,9 @@ class Login extends BaseLogin
 
             $user = Filament::auth()->user();
 
-            if (! Filament::getCurrentPanel() ||
+            if (!Filament::getCurrentPanel() ||
                 ($user instanceof FilamentUser &&
-                    ! $user->canAccessPanel(Filament::getCurrentPanel()))) {
+                    !$user->canAccessPanel(Filament::getCurrentPanel()))) {
                 Filament::auth()->logout();
                 $this->throwFailureValidationException();
             }
@@ -532,10 +567,6 @@ class Login extends BaseLogin
             ]));
     }
 
-    /* --------------------------------------------------------------------- */
-    /*  Form Bileşenleri                                                     */
-    /* --------------------------------------------------------------------- */
-
     protected function getPasswordFormComponent(): Component
     {
         return TextInput::make('password')
@@ -567,23 +598,19 @@ class Login extends BaseLogin
     protected function validateCredentials(array $credentials): bool
     {
         $provider = Filament::auth()->getProvider();
-        $user     = $provider->retrieveByCredentials($credentials);
+        $user = $provider->retrieveByCredentials($credentials);
 
         return $user && $provider->validateCredentials($user, $credentials);
     }
 
-    /* --------------------------------------------------------------------- */
-    /*  Yardımcı                                                             */
-    /* --------------------------------------------------------------------- */
-
     public function backToSmsForm(): void
     {
-        $this->showSmsCode      = false;
-        $this->sms_code         = '';
-        $this->codeData         = [];
+        $this->showSmsCode = false;
+        $this->sms_code = '';
+        $this->codeData = [];
         $this->turnstileTokenSms = '';
+        $this->resetCountdown();
 
         $this->dispatch('resetTurnstile');
-        $this->dispatch('resetCountdown');
     }
 }

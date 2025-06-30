@@ -1,68 +1,182 @@
-# :package_description
+# Filament Loginkit
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-styling.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
+A flexible authentication kit for [Filament](https://filamentphp.com/) that brings enhanced two-factor authentication, SMS login, and customizable login flows to your Laravel applications.
 
-<!--delete-->
----
-This repo can be used to scaffold a Filament plugin. Follow these steps to get started:
+## Table of Contents
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Make something great!
----
-<!--/delete-->
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+- [Installation](#installation)
+- [User Model Changes](#user-model-changes)
+- [Configuration](#configuration)
+    - [Login Methods](#login-methods)
+    - [Two-Factor Authentication](#two-factor-authentication)
+    - [Features](#features)
+    - [SMS Service](#sms-service)
+    - [Queues](#queues) 
+    - [Rate Limits](#rate-limits)
+    - [Branding](#branding)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
+- [Security Vulnerabilities](#security-vulnerabilities)
+- [Credits](#credits)
+- [License](#license)
 
 ## Installation
 
-You can install the package via composer:
+First, install the package via Composer:
 
 ```bash
-composer require :vendor_slug/:package_slug
+composer require aurorawebsoftware/filament-loginkit
 ```
 
-You can publish and run the migrations with:
+Then, run the install command to set up configuration, migrations, assets, and required dependencies:
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
-php artisan migrate
+php artisan filament-loginkit:install
 ```
 
-You can publish the config file with:
+## User Model Changes
 
-```bash
-php artisan vendor:publish --tag=":package_slug-config"
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
-```
-
-This is the contents of the published config file:
+Make sure your User model implements the necessary properties and traits:
 
 ```php
-return [
-];
+<?php
+
+use AuroraWebSoftware\FilamentLoginKit\Traits\TwoFactorAuthenticatable;
+
+class User extends Authenticatable
+{
+    use TwoFactorAuthenticatable;
+
+    protected $fillable = [
+        'phone_number',
+        'two_factor_type',
+        'is_2fa_required',
+        'sms_login_code',
+        'sms_login_expires_at',
+        'two_factor_code',
+        'two_factor_expires_at',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'sms_login_expires_at' => 'datetime',
+        'is_2fa_required' => 'boolean',
+        'two_factor_expires_at' => 'datetime',
+    ];
+}
 ```
 
-## Usage
+## Configuration
+
+After publishing the config file, you can find it at `config/filament-loginkit.php`.
+
+### Login Methods
+
+Enable/disable email and SMS login:
 
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+'email_login' => env('LOGINKIT_EMAIL_LOGIN_ENABLED', true),
+
+'sms_login' => env('LOGINKIT_SMS_LOGIN_ENABLED', false),
 ```
 
-## Testing
+### Two-Factor Authentication
 
-```bash
-composer test
+Set available two-factor methods: `authenticator`, `email`, `sms`
+
+```php
+'options' => [
+    \AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType::authenticator,
+    \AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType::email,
+    \AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType::sms,
+],
 ```
+
+### Features
+
+Enable or disable registration, multi-tenancy, or generic error messages:
+
+```php
+'enabled_features' => [
+    'register' => false,
+    'multi_tenancy' => false,
+    'generic_errors' => false,
+],
+```
+
+### SMS Service
+
+To enable SMS authentication, you must implement your own SMS service using the provided interface.
+
+You can find the interface at:
+
+```php
+AuroraWebSoftware\FilamentLoginKit\Contracts\SmsServiceInterface
+```
+
+First, create a class that implements this interface. For example:
+
+```php
+namespace App\Services;
+
+use AuroraWebSoftware\FilamentLoginKit\Contracts\SmsServiceInterface;
+
+class SmsService implements SmsServiceInterface
+{
+    public function sendSms(string $phone, string $message): void
+    {
+        // Your SMS sending logic here
+    }
+}
+```
+
+Then, register your service in the configuration file:
+
+```php
+// config/filament-loginkit.php
+'sms_service_class' => \App\Services\SmsService::class,
+```
+
+**Note:** Your SMS service must implement all methods required by `SmsServiceInterface`.
+
+
+### Queues
+
+Set whether notifications are queued:
+
+```php
+'queue_notifications' => env('LOGINKIT_QUEUE_NOTIFICATIONS', true),
+'email_queue' => env('LOGINKIT_EMAIL_QUEUE', 'filament-loginkit'),
+'sms_queue' => env('LOGINKIT_SMS_QUEUE', 'filament-loginkit'),
+```
+
+### Rate Limits
+
+Limit login and 2FA attempts to prevent abuse:
+
+```php
+'rate_limits' => [
+    'sms' => [
+        'max_requests' => 5,
+        'per_minutes' => 1,
+    ],
+    'sms_resend' => [
+        'max_requests' => 2,
+        'per_minutes' => 1,
+    ],
+    'login' => [
+        'max_requests' => 5,
+        'per_minutes' => 1,
+    ],
+    'two_factor' => [
+        'max_requests' => 5,
+        'per_minutes' => 1,
+    ],
+],
+```
+
+**And more!** Please check the `config/filament-loginkit.php` file for the full list of options.
 
 ## Changelog
 
@@ -70,15 +184,15 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Contributing
 
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ## Security Vulnerabilities
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+Please review our [security policy](SECURITY.md) on how to report security vulnerabilities.
 
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
+- [Aurora Web Software](https://github.com/aurorawebsoftware)
 - [All Contributors](../../contributors)
 
 ## License

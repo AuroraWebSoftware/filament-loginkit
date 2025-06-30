@@ -25,7 +25,6 @@ class PasswordReset extends Page implements HasForms
 
     public function mount(): void
     {
-        dd(2);
         $this->email = request()->get('email');
 
         if (Filament::auth()->check()) {
@@ -78,7 +77,6 @@ class PasswordReset extends Page implements HasForms
 
     public function render(): View
     {
-        dd(1);
         return view('filament-loginkit::auth.password-reset', $this->getViewData())
             ->layout($this->getLayout(), [
                 'livewire' => $this,

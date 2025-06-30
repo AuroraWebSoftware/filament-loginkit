@@ -178,6 +178,19 @@ Limit login and 2FA attempts to prevent abuse:
 
 **And more!** Please check the `config/filament-loginkit.php` file for the full list of options.
 
+## Queue Usage for SMS and Email Sending
+
+If you want to send SMS and email via the queue, you need to activate the queue worker separately.
+
+The queue name used by Filament Loginkit is `filament-loginkit`.
+
+To start the queue worker in Laravel, run the following command:
+
+```bash
+php artisan queue:work --queue=filament-loginkit
+```
+
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.

@@ -7,7 +7,6 @@ use AuroraWebSoftware\FilamentLoginKit\Http\Responses\LoginResponse;
 use AuroraWebSoftware\FilamentLoginKit\Http\Responses\TwoFactorChallengeViewResponse;
 use AuroraWebSoftware\FilamentLoginKit\Http\Responses\TwoFactorLoginResponse;
 use AuroraWebSoftware\FilamentLoginKit\Testing\TestsFilamentLoginKit;
-use Filament\Events\ServingFilament;
 use Filament\Facades\Filament;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
@@ -55,7 +54,7 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
 
         $configFileName = $package->shortName();
 
-        if (file_exists($package->basePath("/../config/filament-loginkit.php"))) {
+        if (file_exists($package->basePath('/../config/filament-loginkit.php'))) {
             $package->hasConfigFile('filament-loginkit');
         }
 
@@ -105,7 +104,6 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
                 ]);
             }
         });
-
 
         // Icon Registration
         FilamentIcon::register($this->getIcons());

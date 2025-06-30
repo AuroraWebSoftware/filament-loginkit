@@ -103,7 +103,7 @@ return [
 
     'navigation' => [
         'account' => 'Hesap Ayarları',
-        'my_account' => 'Hesabım'
+        'my_account' => 'Hesabım',
     ],
 
     'account' => [
@@ -182,7 +182,7 @@ return [
 
         'resent_success' => 'Kod yeniden gönderildi.',
         'too_many_attempts_title' => 'Çok Fazla Deneme',
-        'too_many_attempts_body'  => ':seconds saniye sonra tekrar deneyin.',
+        'too_many_attempts_body' => ':seconds saniye sonra tekrar deneyin.',
         'code_expired' => 'Kodun süresi geçti, yeni kod isteyin.',
         'please_enter_code' => 'Lütfen doğrulama kodunu girin.',
     ],

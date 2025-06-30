@@ -4,7 +4,6 @@ namespace AuroraWebSoftware\FilamentLoginKit\Http\Middleware;
 
 use Filament\Facades\Filament;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable as Base;
-use Laravel\Fortify\Fortify;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class RedirectIfTwoFactorAuthenticatable extends Base

@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 class FilamentLoginKitCommand extends Command
 {
     protected $signature = 'filament-loginkit:install';
+
     protected $description = 'Install and set up Filament Loginkit.';
 
     public function handle()

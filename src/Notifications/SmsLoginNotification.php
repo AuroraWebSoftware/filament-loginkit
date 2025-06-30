@@ -4,23 +4,28 @@ namespace AuroraWebSoftware\FilamentLoginKit\Notifications;
 
 use AuroraWebSoftware\FilamentLoginKit\Channels\SmsChannel;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\App;
 
-class SmsLoginNotification extends Notification implements ShouldQueue, ShouldBeUnique, ShouldBeEncrypted
+class SmsLoginNotification extends Notification implements ShouldBeEncrypted, ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
     public $tries;
+
     public $backoff;
+
     public $uniqueFor;
 
     protected string $code;
+
     protected ?string $message;
+
     protected ?string $templateKey;
+
     public $locale;
 
     public function __construct(string $code, ?string $message = null, ?string $templateKey = null, ?string $locale = null)
@@ -73,5 +78,3 @@ class SmsLoginNotification extends Notification implements ShouldQueue, ShouldBe
         \Log::error('[SmsLoginNotification] notification failed: ' . $exception->getMessage());
     }
 }
-
-

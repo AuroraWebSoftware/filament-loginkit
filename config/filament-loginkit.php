@@ -60,9 +60,9 @@ return [
         */
         'multi_tenancy' => false,
 
-//        'ip_rate_limit' => env('LOGIN_KIT_IP_LIMIT', false),
+        //        'ip_rate_limit' => env('LOGIN_KIT_IP_LIMIT', false),
 
-//        'generic_errors' => env('LOGIN_KIT_GENERIC_ERR', false),
+        //        'generic_errors' => env('LOGIN_KIT_GENERIC_ERR', false),
         'generic_errors' => false,
     ],
 
@@ -89,7 +89,6 @@ return [
     'notification_retry_delay' => 30,
     'notification_backoff' => 0,
 
-
     'turnstile' => [
         'enabled' => env('LOGINKIT_TURNSTILE_ENABLED', false),
         'sitekey' => env('LOGINKIT_TURNSTILE_SITEKEY'),
@@ -103,7 +102,7 @@ return [
         ],
         'sms_resend' => [
             'max_requests' => 2,
-            'per_minutes' => 1
+            'per_minutes' => 1,
         ],
         'login' => [
             'max_requests' => 5,
@@ -115,10 +114,10 @@ return [
         ],
     ],
 
-//    'ip_limit' => [
-//        'max_attempts' => env('LOGIN_KIT_IP_MAX', 20),
-//        'decay_minutes' => env('LOGIN_KIT_IP_TTL', 1),
-//    ],
+    //    'ip_limit' => [
+    //        'max_attempts' => env('LOGIN_KIT_IP_MAX', 20),
+    //        'decay_minutes' => env('LOGIN_KIT_IP_TTL', 1),
+    //    ],
 
     'sms' => [
         'code_length' => 6,
@@ -153,10 +152,9 @@ return [
         'can_edit' => env('LOGINKIT_ACCOUNT_PAGE_CAN_EDIT', true),
         '2fa' => [
             'code_length' => 6,
-            'code_ttl'    => 5,
-        ]
+            'code_ttl' => 5,
+        ],
     ],
-
 
     /*
     |--------------------------------------------------------------------------

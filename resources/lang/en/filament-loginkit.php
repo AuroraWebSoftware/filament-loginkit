@@ -93,7 +93,7 @@ return [
 
     'navigation' => [
         'account' => 'Account Settings',
-        'my_account'=>'My Account'
+        'my_account' => 'My Account',
     ],
 
     'account' => [
@@ -164,11 +164,11 @@ return [
         'warning_save_securely' => 'WARNING: Keep these codes in a safe place!',
         'each_code_once' => 'Each code can only be used once.',
 
-        'heading'      => 'Authenticate with your code',
+        'heading' => 'Authenticate with your code',
         'invalid_code' => 'Invalid verification code.',
-        'code_label'   => 'Code',
-        'resend'       => 'Resend',
-        'login'        => 'Login',
+        'code_label' => 'Code',
+        'resend' => 'Resend',
+        'login' => 'Login',
     ],
 
     'common' => [

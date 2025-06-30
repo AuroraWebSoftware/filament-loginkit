@@ -12,10 +12,10 @@ use Laravel\Fortify\Events\TwoFactorAuthenticationEnabled;
 class SendTwoFactorCodeListener
 {
     public function handle(
-        TwoFactorAuthenticationChallenged|TwoFactorAuthenticationEnabled $event
+        TwoFactorAuthenticationChallenged | TwoFactorAuthenticationEnabled $event
     ): void {
-        $user   = $event->user;
-        $type   = strtolower(trim($user->two_factor_type));
+        $user = $event->user;
+        $type = strtolower(trim($user->two_factor_type));
         $locale = session('locale') ?? ($user->locale ?? null) ?? config('app.locale');
 
         if ($type === 'authenticator') {
@@ -28,12 +28,12 @@ class SendTwoFactorCodeListener
             return;
         }
 
-        $len        = config('filament-loginkit.sms.code_length', 6);
+        $len = config('filament-loginkit.sms.code_length', 6);
         $ttlMinutes = config('filament-loginkit.sms.code_ttl', 5);
-        $code       = str_pad(random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
+        $code = str_pad(random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
 
         $user->forceFill([
-            'two_factor_code'       => Hash::make($code),
+            'two_factor_code' => Hash::make($code),
             'two_factor_expires_at' => now()->addMinutes($ttlMinutes),
         ])->save();
 

@@ -14,9 +14,9 @@ class FilamentLoginKitPlugin implements Plugin
 {
     use EvaluatesClosures;
 
-    private Closure|bool|null $forced = false;
+    private Closure | bool | null $forced = false;
 
-    private Closure|bool $showInUserMenu = true;
+    private Closure | bool $showInUserMenu = true;
 
     public function getId(): string
     {
@@ -39,12 +39,12 @@ class FilamentLoginKitPlugin implements Plugin
             ]);
         }
 
-        if (!config('filament-loginkit.enabled_features.multi_tenancy') && $this->shouldShowInUserMenu()) {
+        if (! config('filament-loginkit.enabled_features.multi_tenancy') && $this->shouldShowInUserMenu()) {
             $panel->userMenuItems([
                 'two-factor-authentication' => MenuItem::make()
                     ->icon('heroicon-o-lock-closed')
                     ->label(__('filament-loginkit::filament-loginkit.navigation.my_account'))
-                    ->url(fn(): string => Account::getUrl()),
+                    ->url(fn (): string => Account::getUrl()),
             ]);
         }
 
@@ -76,19 +76,19 @@ class FilamentLoginKitPlugin implements Plugin
         return $plugin;
     }
 
-    public function forced(Closure|bool|null $forced = true, bool $withTenancy = false): self
+    public function forced(Closure | bool | null $forced = true, bool $withTenancy = false): self
     {
         $this->forced = $forced;
 
         return $this;
     }
 
-    public function isForced(): Closure|bool|null
+    public function isForced(): Closure | bool | null
     {
         return $this->evaluate($this->forced);
     }
 
-    public function showInUserMenu(Closure|bool $showInUserMenu = true): self
+    public function showInUserMenu(Closure | bool $showInUserMenu = true): self
     {
         $this->showInUserMenu = $showInUserMenu;
 

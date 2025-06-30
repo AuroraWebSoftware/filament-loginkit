@@ -3,18 +3,20 @@
 namespace AuroraWebSoftware\FilamentLoginKit\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
-use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
-class SendOTP extends Notification implements ShouldQueue, ShouldBeUnique, ShouldBeEncrypted
+class SendOTP extends Notification implements ShouldBeEncrypted, ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
     public $tries;
+
     public $backoff;
+
     public $uniqueFor;
 
     public function __construct(
@@ -43,11 +45,11 @@ class SendOTP extends Notification implements ShouldQueue, ShouldBeUnique, Shoul
 
     public function uniqueId()
     {
-        return 'mail-'.$this->code.'-'.$this->getKey();
+        return 'mail-' . $this->code . '-' . $this->getKey();
     }
 
     public function failed($exception)
     {
-        \Log::error('[SendOTP] notification failed: '.$exception->getMessage());
+        \Log::error('[SendOTP] notification failed: ' . $exception->getMessage());
     }
 }

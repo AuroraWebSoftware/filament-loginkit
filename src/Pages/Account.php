@@ -6,20 +6,22 @@ use AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType;
 use AuroraWebSoftware\FilamentLoginKit\Notifications\SendOTP;
 use AuroraWebSoftware\FilamentLoginKit\Notifications\SmsLoginNotification;
 use Carbon\Carbon;
-use Filament\Forms\Components\{Grid, Radio, Section, TextInput};
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\{Auth, Hash};
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Laravel\Fortify\Actions\{
-    ConfirmTwoFactorAuthentication,
-    DisableTwoFactorAuthentication,
-    EnableTwoFactorAuthentication,
-    GenerateNewRecoveryCodes
-};
+use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
+use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
+use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
+use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 use Ysfkaya\FilamentPhoneInput\Forms\PhoneInput;
 
 class Account extends Page implements HasForms
@@ -47,14 +49,20 @@ class Account extends Page implements HasForms
     public array $twoFactor = [];
 
     public $user;
-    public bool $show2faSetup = false;
-    public bool $showQrCode = false;
-    public bool $showRecoveryCodes = false;
-    public bool $showConfirmation = false;
-    public string $otpCode = '';
-    public string $selected2faType = '';
-    public bool $canEditAccount = true;
 
+    public bool $show2faSetup = false;
+
+    public bool $showQrCode = false;
+
+    public bool $showRecoveryCodes = false;
+
+    public bool $showConfirmation = false;
+
+    public string $otpCode = '';
+
+    public string $selected2faType = '';
+
+    public bool $canEditAccount = true;
 
     public function mount(): void
     {
@@ -73,7 +81,6 @@ class Account extends Page implements HasForms
 
     }
 
-
     protected function getForms(): array
     {
         return ['accountForm', 'passwordForm', 'twoFactorForm'];
@@ -90,25 +97,23 @@ class Account extends Page implements HasForms
                             ->label(__('filament-loginkit::filament-loginkit.fields.name'))
                             ->required()
                             ->maxLength(255)
-                            ->disabled(fn() => !$this->canEditAccount),
+                            ->disabled(fn () => ! $this->canEditAccount),
                         TextInput::make('email')
                             ->label(__('filament-loginkit::filament-loginkit.fields.email'))
                             ->email()
                             ->required()
                             ->maxLength(255)
-                            ->disabled(fn() => !$this->canEditAccount),
+                            ->disabled(fn () => ! $this->canEditAccount),
                         PhoneInput::make('phone_number')
                             ->label(__('filament-loginkit::filament-loginkit.sms.phone_label'))
                             ->initialCountry('tr')
                             ->countryOrder(['tr'])
                             ->strictMode()
-                            ->required()
-                        ,
+                            ->required(),
                     ]),
                 ]),
         ])->statePath('account');
     }
-
 
     public function passwordForm(Form $form): Form
     {
@@ -189,7 +194,7 @@ class Account extends Page implements HasForms
 
     public function getCurrentMethodName(): string
     {
-        if (!$this->is2faEnabled()) {
+        if (! $this->is2faEnabled()) {
             return '';
         }
 
@@ -219,12 +224,13 @@ class Account extends Page implements HasForms
         try {
             $data = $this->password;
 
-            if (!Hash::check($data['current_password'], $this->user->password)) {
+            if (! Hash::check($data['current_password'], $this->user->password)) {
                 Notification::make()
                     ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
                     ->body(__('filament-loginkit::filament-loginkit.notifications.current_password_incorrect'))
                     ->danger()
                     ->send();
+
                 return;
             }
 
@@ -253,6 +259,7 @@ class Account extends Page implements HasForms
                 ->body(__('filament-loginkit::filament-loginkit.notifications.two_factor_already_enabled'))
                 ->warning()
                 ->send();
+
             return;
         }
 
@@ -269,7 +276,7 @@ class Account extends Page implements HasForms
             'showConfirmation',
             'otpCode',
             'selected2faType',
-            'twoFactor'
+            'twoFactor',
         ]);
     }
 
@@ -277,12 +284,13 @@ class Account extends Page implements HasForms
     {
         $type = $this->twoFactor['twoFactorType'] ?? null;
 
-        if (!$type) {
+        if (! $type) {
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.notifications.warning'))
                 ->body(__('filament-loginkit::filament-loginkit.notifications.select_two_factor_method'))
                 ->warning()
                 ->send();
+
             return;
         }
 
@@ -336,9 +344,9 @@ class Account extends Page implements HasForms
         $len = config('filament-loginkit.account_page.code_length', 6);
         $code = str_pad(random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
 
-        $ttl  = config('filament-loginkit.account_page.2fa.code_ttl', 5);
+        $ttl = config('filament-loginkit.account_page.2fa.code_ttl', 5);
         $this->user->forceFill([
-            'two_factor_code'       => Hash::make($code),
+            'two_factor_code' => Hash::make($code),
             'two_factor_expires_at' => now()->addMinutes($ttl),
         ])->save();
 
@@ -368,12 +376,13 @@ class Account extends Page implements HasForms
 
     public function confirmTwoFactorAuthentication(): void
     {
-        if (!$this->otpCode || strlen($this->otpCode) !== 6) {
+        if (! $this->otpCode || strlen($this->otpCode) !== 6) {
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.notifications.warning'))
                 ->body(__('filament-loginkit::filament-loginkit.notifications.enter_six_digit_code'))
                 ->warning()
                 ->send();
+
             return;
         }
 
@@ -405,8 +414,8 @@ class Account extends Page implements HasForms
     private function confirmCodeBasedAuth(): void
     {
         if (
-            !$this->user->two_factor_code ||
-            !Hash::check($this->otpCode, $this->user->two_factor_code) ||
+            ! $this->user->two_factor_code ||
+            ! Hash::check($this->otpCode, $this->user->two_factor_code) ||
             Carbon::parse($this->user->two_factor_expires_at)->isPast()
         ) {
             throw new \Exception('Invalid or expired code');
@@ -432,7 +441,7 @@ class Account extends Page implements HasForms
             'showQrCode',
             'showConfirmation',
             'otpCode',
-            'twoFactor'
+            'twoFactor',
         ]);
 
         Notification::make()
@@ -445,12 +454,13 @@ class Account extends Page implements HasForms
 
     public function disable2fa(): void
     {
-        if (!$this->is2faEnabled()) {
+        if (! $this->is2faEnabled()) {
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.notifications.info'))
                 ->body(__('filament-loginkit::filament-loginkit.notifications.two_factor_already_disabled'))
                 ->warning()
                 ->send();
+
             return;
         }
 
@@ -472,7 +482,7 @@ class Account extends Page implements HasForms
                 'showQrCode',
                 'showRecoveryCodes',
                 'showConfirmation',
-                'twoFactor'
+                'twoFactor',
             ]);
 
             Notification::make()
@@ -497,6 +507,7 @@ class Account extends Page implements HasForms
                 ->body(__('filament-loginkit::filament-loginkit.notifications.recovery_codes_only_authenticator'))
                 ->warning()
                 ->send();
+
             return;
         }
 
@@ -527,21 +538,21 @@ class Account extends Page implements HasForms
         }
 
         $codes = $this->user->recoveryCodes();
-        $content = "# " . config('app.name') . " - " . __('filament-loginkit::filament-loginkit.two_factor.recovery_codes') . "\n\n";
-        $content .= __('filament-loginkit::filament-loginkit.two_factor.account') . ": " . $this->user->email . "\n";
-        $content .= __('filament-loginkit::filament-loginkit.two_factor.generated_at') . ": " . now()->format('d.m.Y H:i') . "\n\n";
+        $content = '# ' . config('app.name') . ' - ' . __('filament-loginkit::filament-loginkit.two_factor.recovery_codes') . "\n\n";
+        $content .= __('filament-loginkit::filament-loginkit.two_factor.account') . ': ' . $this->user->email . "\n";
+        $content .= __('filament-loginkit::filament-loginkit.two_factor.generated_at') . ': ' . now()->format('d.m.Y H:i') . "\n\n";
         $content .= __('filament-loginkit::filament-loginkit.two_factor.warning_save_securely') . "\n";
         $content .= __('filament-loginkit::filament-loginkit.two_factor.each_code_once') . "\n\n";
         $content .= __('filament-loginkit::filament-loginkit.two_factor.recovery_codes') . ":\n";
         $content .= "==================\n\n";
 
         foreach ($codes as $index => $code) {
-            $content .= ($index + 1) . ". " . $code . "\n";
+            $content .= ($index + 1) . '. ' . $code . "\n";
         }
 
         $this->dispatch('download-recovery-codes', [
             'filename' => 'recovery-codes-' . now()->format('Y-m-d') . '.txt',
-            'content' => $content
+            'content' => $content,
         ]);
 
         $this->showRecoveryCodes = false;

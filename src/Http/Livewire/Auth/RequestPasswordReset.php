@@ -14,7 +14,10 @@ class RequestPasswordReset extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static string $layout = 'filament.layouts.login';
+    protected static string $layout = 'filament-loginkit::layouts.login';
+
+    protected static string $view = 'filament-loginkit::auth.password-reset';
+
 
     public ?string $email = '';
 
@@ -44,20 +47,11 @@ class RequestPasswordReset extends Page implements HasForms
         return [
             TextInput::make('email')
                 ->extraInputAttributes(['name' => 'email'])
-                ->label('E-mailxxx')
+                ->label('E-mail')
                 ->email()
                 ->required()
                 ->autocomplete(),
         ];
     }
 
-    public function render(): View
-    {
-        return view('filament-loginkit::auth.request-password-reset', $this->getViewData())
-            ->layout($this->getLayout(), [
-                'livewire' => $this,
-                'maxContentWidth' => $this->getMaxContentWidth(),
-                ...$this->getLayoutData(),
-            ]);
-    }
 }

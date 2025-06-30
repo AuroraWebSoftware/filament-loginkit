@@ -15,7 +15,10 @@ class PasswordReset extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static string $layout = 'filament.layouts.login';
+    protected static string $layout = 'filament-loginkit::layouts.login';
+
+    protected static string $view = 'filament-loginkit::auth.password-reset';
+
 
     public ?string $email = '';
 
@@ -75,13 +78,4 @@ class PasswordReset extends Page implements HasForms
         ];
     }
 
-    public function render(): View
-    {
-        return view('filament-loginkit::auth.password-reset', $this->getViewData())
-            ->layout($this->getLayout(), [
-                'livewire' => $this,
-                'maxContentWidth' => $this->getMaxContentWidth(),
-                ...$this->getLayoutData(),
-            ]);
-    }
 }

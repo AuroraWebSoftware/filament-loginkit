@@ -35,6 +35,17 @@ Then, run the install command to set up configuration, migrations, assets, and r
 php artisan filament-loginkit:install
 ```
 
+Add the plugin to your `PanelProvider`:
+
+```php
+plugin(FilamentLoginKitPlugin::make())
+```
+
+To require two-factor authentication for all users, use the forced() method:
+
+```php
+plugin(FilamentLoginKitPlugin::make()->forced())
+```
 ## User Model Changes
 
 Make sure your User model implements the necessary properties and traits:

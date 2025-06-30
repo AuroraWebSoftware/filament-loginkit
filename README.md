@@ -141,25 +141,6 @@ Then, register your service in the configuration file:
 
 **Note:** Your SMS service must implement all methods required by `SmsServiceInterface`.
 
-
-### Queues
-
-Set whether notifications are queued:
-
-```php
-'queue_notifications' => env('LOGINKIT_QUEUE_NOTIFICATIONS', true),
-'email_queue' => env('LOGINKIT_EMAIL_QUEUE', 'filament-loginkit'),
-'sms_queue' => env('LOGINKIT_SMS_QUEUE', 'filament-loginkit'),
-```
-
-The queue name used by Filament Loginkit is `filament-loginkit`.
-
-To start the queue worker in Laravel, run the following command:
-
-```bash
-php artisan queue:work --queue=filament-loginkit
-```
-
 ### Rate Limits
 
 Limit login and 2FA attempts to prevent abuse:
@@ -183,6 +164,24 @@ Limit login and 2FA attempts to prevent abuse:
         'per_minutes' => 1,
     ],
 ],
+```
+
+### Queues
+
+Set whether notifications are queued:
+
+```php
+'queue_notifications' => env('LOGINKIT_QUEUE_NOTIFICATIONS', true),
+'email_queue' => env('LOGINKIT_EMAIL_QUEUE', 'filament-loginkit'),
+'sms_queue' => env('LOGINKIT_SMS_QUEUE', 'filament-loginkit'),
+```
+
+The queue name used by Filament Loginkit is `filament-loginkit`.
+
+To start the queue worker in Laravel, run the following command:
+
+```bash
+php artisan queue:work --queue=filament-loginkit
 ```
 
 **And more!** Please check the `config/filament-loginkit.php` file for the full list of options.

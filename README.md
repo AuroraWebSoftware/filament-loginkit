@@ -1,6 +1,7 @@
 # Filament Loginkit
 
-A flexible authentication kit for [Filament](https://filamentphp.com/) that brings enhanced two-factor authentication, SMS login, and customizable login flows to your Laravel applications.
+A flexible authentication kit for [Filament](https://filamentphp.com/) that brings enhanced two-factor authentication,
+SMS login, and customizable login flows to your Laravel applications.
 
 ## Table of Contents
 
@@ -11,7 +12,7 @@ A flexible authentication kit for [Filament](https://filamentphp.com/) that brin
     - [Two-Factor Authentication](#two-factor-authentication)
     - [Features](#features)
     - [SMS Service](#sms-service)
-    - [Queues](#queues) 
+    - [Queues](#queues)
     - [Rate Limits](#rate-limits)
     - [Branding](#branding)
 - [Changelog](#changelog)
@@ -151,6 +152,14 @@ Set whether notifications are queued:
 'sms_queue' => env('LOGINKIT_SMS_QUEUE', 'filament-loginkit'),
 ```
 
+The queue name used by Filament Loginkit is `filament-loginkit`.
+
+To start the queue worker in Laravel, run the following command:
+
+```bash
+php artisan queue:work --queue=filament-loginkit
+```
+
 ### Rate Limits
 
 Limit login and 2FA attempts to prevent abuse:
@@ -177,19 +186,6 @@ Limit login and 2FA attempts to prevent abuse:
 ```
 
 **And more!** Please check the `config/filament-loginkit.php` file for the full list of options.
-
-## Queue Usage for SMS and Email Sending
-
-If you want to send SMS and email via the queue, you need to activate the queue worker separately.
-
-The queue name used by Filament Loginkit is `filament-loginkit`.
-
-To start the queue worker in Laravel, run the following command:
-
-```bash
-php artisan queue:work --queue=filament-loginkit
-```
-
 
 ## Changelog
 

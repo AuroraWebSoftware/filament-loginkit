@@ -9,7 +9,6 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Contracts\View\View;
 
 class PasswordReset extends Page implements HasForms
 {
@@ -18,7 +17,6 @@ class PasswordReset extends Page implements HasForms
     protected static string $layout = 'filament-loginkit::layouts.login';
 
     protected static string $view = 'filament-loginkit::auth.password-reset';
-
 
     public ?string $email = '';
 
@@ -77,5 +75,4 @@ class PasswordReset extends Page implements HasForms
                 ->afterStateHydrated(fn ($component) => $component->state(request()->route('token'))),
         ];
     }
-
 }

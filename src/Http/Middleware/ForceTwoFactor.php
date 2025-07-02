@@ -1,0 +1,48 @@
+<?php
+
+namespace AuroraWebSoftware\FilamentLoginKit\Http\Middleware;
+
+use Closure;
+use Filament\Facades\Filament;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class ForceTwoFactor
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        $user = Filament::auth()->user();
+
+        if (! $user) {
+            return $next($request);
+        }
+
+        if ($request->routeIs('filament.*.account') || $request->routeIs('filament.*.auth.logout')) {
+            return $next($request);
+        }
+
+        if (
+            $user->is_2fa_required
+            && (empty($user->two_factor_type) || is_null($user->two_factor_type))
+        ) {
+            $panel = Filament::getCurrentPanel();
+
+            if ($panel) {
+                $basePath = rtrim('/' . ltrim($panel->getPath(), '/'), '/');
+
+                if ($tenant = Filament::getTenant()) {
+                    return redirect("$basePath/$tenant/account");
+                }
+
+                return redirect("$basePath/account");
+            }
+        }
+
+        return $next($request);
+    }
+}

@@ -1,10 +1,15 @@
-const preset = require('./vendor/filament/filament/tailwind.config.preset')
-
 module.exports = {
-    presets: [preset],
+    darkMode: 'class',
     content: [
-        './app/Filament/**/*.php',
-        './resources/views/filament/**/*.blade.php',
-        './vendor/filament/**/*.blade.php',
+        './resources/views/**/*.blade.php',
+        './resources/js/**/*.js',
+        './src/**/*.php'
     ],
-}
+    safelist: [
+        'bg-red-500', 'text-green-500', 'rounded-lg', 'p-8'
+    ],
+    theme: {
+        extend: {},
+    },
+    plugins: [],
+};

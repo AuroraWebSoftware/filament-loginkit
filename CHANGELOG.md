@@ -2,6 +2,15 @@
 
 All notable changes to `:package_name` will be documented in this file.
 
+## 12.0.1 - 2025-07-03
+
+### What's Changed
+
+* - composer.json fixed by @MFarukDemirkoparan in https://github.com/AuroraWebSoftware/filament-loginkit/pull/3
+  
+
+**Full Changelog**: https://github.com/AuroraWebSoftware/filament-loginkit/compare/12.0.0...12.0.1
+
 ## 12.0.0 - 2025-07-02
 
 ### What's Changed

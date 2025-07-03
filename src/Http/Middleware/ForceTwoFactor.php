@@ -22,6 +22,10 @@ class ForceTwoFactor
             return $next($request);
         }
 
+        if ($request->session()->get('login_type') === 'sms') {
+            return $next($request);
+        }
+
         if ($request->routeIs('filament.*.account') || $request->routeIs('filament.*.auth.logout')) {
             return $next($request);
         }

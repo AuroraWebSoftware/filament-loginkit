@@ -427,12 +427,6 @@ class Login extends BaseLogin
 
             return;
         }
-        if ($user->sms_login_expires_at && now()->lessThan($user->sms_login_expires_at)) {
-
-            $this->startCountdown();
-
-            return;
-        }
 
         $code = $this->generateSmsCode();
 

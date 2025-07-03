@@ -12,13 +12,17 @@ class ForceTwoFactor
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = Filament::auth()->user();
 
-        if (! $user) {
+        if (!$user) {
+            return $next($request);
+        }
+
+        if ($request->session()->get('login_type') === 'sms') {
             return $next($request);
         }
 

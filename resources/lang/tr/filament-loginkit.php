@@ -75,6 +75,9 @@ return [
         'generic_title' => 'Hata',
         'generic_body' => 'Bir hata oluştu, lütfen tekrar deneyin.',
         'code' => 'Kod',
+
+        'inactive_title' => 'Giriş engellendi',
+        'inactive_body' => 'Hesabınız pasif durumdadır. Lütfen yöneticiyle iletişime geçin.',
     ],
 
     'email' => [
@@ -99,6 +102,9 @@ return [
         'too_many_attempts_body' => 'Çok fazla giriş denemesi yaptınız. :seconds saniye sonra tekrar deneyin.',
         'generic_fail_title' => 'Giriş Başarısız',
         'generic_fail_body' => 'Giriş yapılamadı, lütfen tekrar deneyin.',
+
+        'inactive_title' => 'Giriş engellendi',
+        'inactive_body' => 'Hesabınız pasif durumdadır. Lütfen yöneticiyle iletişime geçin.',
     ],
 
     'navigation' => [
@@ -142,7 +148,7 @@ return [
         'setup_title' => '2FA Kurulumu',
         'select_method' => 'Güvenlik yönteminizi seçin',
         'method' => '2FA Yöntemi',
-
+        'logout' => 'Çıkış yap',
         'methods' => [
             'sms' => 'SMS',
             'email' => 'E-posta',

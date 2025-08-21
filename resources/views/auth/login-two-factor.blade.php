@@ -35,6 +35,15 @@
         </x-filament::button>
     </x-filament-panels::form>
 
+{{--    <div class="fixed bottom-6 right-6">--}}
+{{--        <form method="POST" action="{{ route('logout') }}">--}}
+{{--            @csrf--}}
+{{--            <button type="submit" class="text-sm underline font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">--}}
+{{--                {{ __('filament-loginkit::filament-loginkit.two_factor.logout') }}--}}
+{{--            </button>--}}
+{{--        </form>--}}
+{{--    </div>--}}
+
     <script>
         document.addEventListener('livewire:initialized', () => {
             @this.

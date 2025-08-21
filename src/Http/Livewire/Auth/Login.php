@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\HtmlString;
 use Laravel\Fortify\Actions\AttemptToAuthenticate;
 use Laravel\Fortify\Actions\CanonicalizeUsername;
@@ -130,6 +131,13 @@ class Login extends BaseLogin
         Cache::increment($key);
 
         return Cache::get($key);
+    }
+
+    private function isUserInactive(?User $user): bool
+    {
+        return $user
+            && Schema::hasColumn('users', 'is_active')
+            && ! (bool) $user->is_active;
     }
 
     //    private function ipThrottle(string $suffix): bool
@@ -333,6 +341,12 @@ class Login extends BaseLogin
             return;
         }
 
+        if ($this->isUserInactive($user)) {
+            $this->errorNotify('inactive', 'sms');
+
+            return;
+        }
+
         $floodKey = 'sms_flood:' . md5($this->phone_number);
         $floodWindow = config('filament-loginkit.sms.flood.window_minutes');
 
@@ -405,6 +419,12 @@ class Login extends BaseLogin
 
         if (! $user) {
             $this->errorNotify('generic', 'sms');
+
+            return;
+        }
+
+        if ($this->isUserInactive($user)) {
+            $this->errorNotify('inactive', 'sms');
 
             return;
         }
@@ -495,6 +515,12 @@ class Login extends BaseLogin
             return null;
         }
 
+        if ($this->isUserInactive($user)) {
+            $this->errorNotify('inactive', 'sms');
+
+            return null;
+        }
+
         Cache::forget('sms_wrong:' . md5($this->phone_number));
 
         session()->put('panel', Filament::getCurrentPanel()?->getId());
@@ -531,9 +557,17 @@ class Login extends BaseLogin
 
             return null;
         }
+
+        $candidate = User::where('email', $data['email'] ?? null)->first();
+        if ($this->isUserInactive($candidate)) {
+            $this->errorNotify('inactive', 'email');
+            $this->dispatch('resetTurnstile');
+
+            return null;
+        }
+
         $req = request()->merge($data);
 
-        //        dd($req);
         return $this->loginPipeline($req)->then(function () use ($data) {
 
             if (! Filament::auth()->attempt(
@@ -544,6 +578,12 @@ class Login extends BaseLogin
             }
 
             $user = Filament::auth()->user();
+
+            if ($this->isUserInactive($user)) {
+                Filament::auth()->logout();
+                $this->errorNotify('inactive', 'email');
+                $this->throwFailureValidationException();
+            }
 
             if (! Filament::getCurrentPanel() ||
                 ($user instanceof FilamentUser &&

@@ -72,6 +72,9 @@ return [
         'generic_title' => 'Error',
         'generic_body' => 'An error occurred, please try again.',
         'code' => 'Code',
+
+        'inactive_title' => 'Login blocked',
+        'inactive_body' => 'Your account is inactive. Please contact the administrator.',
     ],
 
     'email' => [
@@ -89,6 +92,9 @@ return [
         'security_notice' => 'Security Notice',
         'security_warning' => "If you didn't perform this login, please change your password immediately to protect your account and contact us.",
         'footer_text' => 'This email was sent automatically by :app.',
+
+        'inactive_title' => 'Login blocked',
+        'inactive_body' => 'Your account is inactive. Please contact the administrator.',
     ],
 
     'navigation' => [
@@ -132,6 +138,7 @@ return [
         'setup_title' => '2FA Setup',
         'select_method' => 'Select your security method',
         'method' => '2FA Method',
+        'logout' => 'Logout',
 
         'methods' => [
             'sms' => 'SMS',

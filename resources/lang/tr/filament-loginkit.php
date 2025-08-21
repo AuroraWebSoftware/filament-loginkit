@@ -77,7 +77,7 @@ return [
         'code' => 'Kod',
 
         'inactive_title' => 'Giriş engellendi',
-        'inactive_body'  => 'Hesabınız pasif durumdadır. Lütfen yöneticiyle iletişime geçin.',
+        'inactive_body' => 'Hesabınız pasif durumdadır. Lütfen yöneticiyle iletişime geçin.',
     ],
 
     'email' => [
@@ -104,7 +104,7 @@ return [
         'generic_fail_body' => 'Giriş yapılamadı, lütfen tekrar deneyin.',
 
         'inactive_title' => 'Giriş engellendi',
-        'inactive_body'  => 'Hesabınız pasif durumdadır. Lütfen yöneticiyle iletişime geçin.',
+        'inactive_body' => 'Hesabınız pasif durumdadır. Lütfen yöneticiyle iletişime geçin.',
     ],
 
     'navigation' => [

@@ -123,7 +123,7 @@ class Login extends BaseLogin
 
     private function cacheIncrement(string $key, int $ttl): int
     {
-        if (!Cache::has($key)) {
+        if (! Cache::has($key)) {
             Cache::put($key, 1, $ttl);
 
             return 1;
@@ -137,7 +137,7 @@ class Login extends BaseLogin
     {
         return $user
             && Schema::hasColumn('users', 'is_active')
-            && !(bool)$user->is_active;
+            && ! (bool) $user->is_active;
     }
 
     //    private function ipThrottle(string $suffix): bool
@@ -223,7 +223,7 @@ class Login extends BaseLogin
 
     private function verifyTurnstileOrNotify(?string $token, string $property = 'turnstileToken'): bool
     {
-        if (blank($token) || !$this->verifyTurnstile($token)) {
+        if (blank($token) || ! $this->verifyTurnstile($token)) {
             $this->resetTurnstile($property);
 
             Notification::make()
@@ -335,7 +335,7 @@ class Login extends BaseLogin
         $this->phone_number = $this->getSmsPhoneForm()->getState()['phone_number'] ?? '';
         $user = User::where('phone_number', $this->phone_number)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->errorNotify('not_found', 'sms');
 
             return;
@@ -343,6 +343,7 @@ class Login extends BaseLogin
 
         if ($this->isUserInactive($user)) {
             $this->errorNotify('inactive', 'sms');
+
             return;
         }
 
@@ -357,7 +358,7 @@ class Login extends BaseLogin
         }
 
         if (config('filament-loginkit.turnstile.enabled') &&
-            !$this->verifyTurnstileOrNotify($this->turnstileTokenSms)) {
+            ! $this->verifyTurnstileOrNotify($this->turnstileTokenSms)) {
             return;
         }
 
@@ -416,7 +417,7 @@ class Login extends BaseLogin
 
         $user = User::where('phone_number', $this->phone_number)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->errorNotify('generic', 'sms');
 
             return;
@@ -424,6 +425,7 @@ class Login extends BaseLogin
 
         if ($this->isUserInactive($user)) {
             $this->errorNotify('inactive', 'sms');
+
             return;
         }
 
@@ -486,7 +488,7 @@ class Login extends BaseLogin
                 ->lockForUpdate()
                 ->first();
 
-            if (!$user || !Hash::check($this->sms_code, $user->sms_login_code)) {
+            if (! $user || ! Hash::check($this->sms_code, $user->sms_login_code)) {
                 return;
             }
 
@@ -498,7 +500,7 @@ class Login extends BaseLogin
             $loginSucceeded = true;
         });
 
-        if (!$loginSucceeded) {
+        if (! $loginSucceeded) {
             $wrongKey = 'sms_wrong:' . md5($this->phone_number);
             $attempts = $this->cacheIncrement($wrongKey, $this->smsAttemptDecay);
 
@@ -515,6 +517,7 @@ class Login extends BaseLogin
 
         if ($this->isUserInactive($user)) {
             $this->errorNotify('inactive', 'sms');
+
             return null;
         }
 
@@ -530,7 +533,7 @@ class Login extends BaseLogin
         return app(LoginResponse::class);
     }
 
-    public function loginWithFortify(): LoginResponse|Redirector|Response|null
+    public function loginWithFortify(): LoginResponse | Redirector | Response | null
     {
         $limits = config('filament-loginkit.rate_limits.login');
 
@@ -543,12 +546,12 @@ class Login extends BaseLogin
         }
 
         if (config('filament-loginkit.turnstile.enabled') &&
-            !$this->verifyTurnstileOrNotify($this->turnstileToken)) {
+            ! $this->verifyTurnstileOrNotify($this->turnstileToken)) {
             return null;
         }
 
         $data = $this->form->getState();
-        if (!$this->validateCredentials($this->getCredentialsFromFormData($data))) {
+        if (! $this->validateCredentials($this->getCredentialsFromFormData($data))) {
             $this->errorNotify('invalid_credentials');
             $this->dispatch('resetTurnstile');
 
@@ -559,6 +562,7 @@ class Login extends BaseLogin
         if ($this->isUserInactive($candidate)) {
             $this->errorNotify('inactive', 'email');
             $this->dispatch('resetTurnstile');
+
             return null;
         }
 
@@ -566,7 +570,7 @@ class Login extends BaseLogin
 
         return $this->loginPipeline($req)->then(function () use ($data) {
 
-            if (!Filament::auth()->attempt(
+            if (! Filament::auth()->attempt(
                 $this->getCredentialsFromFormData($data),
                 $data['remember'] ?? false
             )) {
@@ -581,9 +585,9 @@ class Login extends BaseLogin
                 $this->throwFailureValidationException();
             }
 
-            if (!Filament::getCurrentPanel() ||
+            if (! Filament::getCurrentPanel() ||
                 ($user instanceof FilamentUser &&
-                    !$user->canAccessPanel(Filament::getCurrentPanel()))) {
+                    ! $user->canAccessPanel(Filament::getCurrentPanel()))) {
                 Filament::auth()->logout();
                 $this->throwFailureValidationException();
             }
@@ -636,10 +640,10 @@ class Login extends BaseLogin
             ->hint(
                 Filament::hasPasswordReset()
                     ? new HtmlString(Blade::render(
-                    '<x-filament::link :href="filament()->getRequestPasswordResetUrl()" tabindex="3">
+                        '<x-filament::link :href="filament()->getRequestPasswordResetUrl()" tabindex="3">
                             {{ __(\'filament-panels::pages/auth/login.actions.request_password_reset.label\') }}
                          </x-filament::link>'
-                ))
+                    ))
                     : null
             );
     }

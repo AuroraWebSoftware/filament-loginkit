@@ -67,6 +67,7 @@ class User extends Authenticatable
         'sms_login_expires_at',
         'two_factor_code',
         'two_factor_expires_at',
+        'is_active'
     ];
 
     protected $casts = [
@@ -75,6 +76,7 @@ class User extends Authenticatable
         'sms_login_expires_at' => 'datetime',
         'is_2fa_required' => 'boolean',
         'two_factor_expires_at' => 'datetime',
+        'is_active'=>'boolean'
     ];
 }
 ```

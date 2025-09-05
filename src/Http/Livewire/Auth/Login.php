@@ -534,6 +534,7 @@ class Login extends BaseLogin
                 && ! $authed->canAccessPanel(Filament::getCurrentPanel()))) {
             Filament::auth()->logout();
             $this->errorNotify('inactive', 'sms');
+
             return null;
         }
 

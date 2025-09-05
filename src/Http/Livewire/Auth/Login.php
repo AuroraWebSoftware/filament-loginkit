@@ -527,9 +527,24 @@ class Login extends BaseLogin
         session()->put('login_type', 'sms');
 
         Filament::auth()->login($user, false);
-        request()->session()->regenerate();
 
-        return redirect()->intended(\Filament\Facades\Filament::getUrl());
+        $authed = Filament::auth()->user();
+        if (! Filament::getCurrentPanel()
+            || ($authed instanceof FilamentUser
+                && ! $authed->canAccessPanel(Filament::getCurrentPanel()))) {
+            Filament::auth()->logout();
+            $this->errorNotify('inactive', 'sms');
+            return null;
+        }
+
+        session()->put('login_type', 'sms');
+
+        return app(Pipeline::class)
+            ->send(request())
+            ->through([PrepareAuthenticatedSession::class])
+            ->then(function () {
+                return app(\AuroraWebSoftware\FilamentLoginKit\Http\Responses\LoginResponse::class);
+            });
     }
 
     public function loginWithFortify(): LoginResponse | Redirector | Response | null

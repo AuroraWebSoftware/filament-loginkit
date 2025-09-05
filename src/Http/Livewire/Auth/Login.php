@@ -528,9 +528,11 @@ class Login extends BaseLogin
 
         Filament::auth()->login($user, false);
 
-        session()->regenerate();
+        request()->session()->regenerate();
 
-        return app(LoginResponse::class);
+        $this->redirectIntended(Filament::getUrl(), navigate: true);
+
+        return null;
     }
 
     public function loginWithFortify(): LoginResponse | Redirector | Response | null

@@ -2,6 +2,15 @@
 
 All notable changes to `:package_name` will be documented in this file.
 
+## 12.0.5 - 2025-09-05
+
+### What's Changed
+
+* - sms login fix by @MFarukDemirkoparan in https://github.com/AuroraWebSoftware/filament-loginkit/pull/9
+  
+
+**Full Changelog**: https://github.com/AuroraWebSoftware/filament-loginkit/compare/12.0.4...12.0.5
+
 ## 12.0.4 - 2025-09-05
 
 ### What's Changed

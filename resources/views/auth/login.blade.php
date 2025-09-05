@@ -92,7 +92,7 @@
             @if ($smsEnabled && (!$emailEnabled || ($emailEnabled && $loginTab === 'sms')) && !$showSmsCode)
                 <div>
                     <div class="space-y-6">
-                        <form wire:submit="sendSmsCode">
+                        <form wire:submit.prevent="sendSmsCode">
                             <div class="mt-5 mb-6">
                                 {{ $this->getSmsPhoneForm() }}
                             </div>
@@ -146,7 +146,7 @@
                             </p>
                         </div>
 
-                        <form wire:submit="loginWithSms" class="space-y-4">
+                        <form wire:submit.prevent="loginWithSms" class="space-y-4">
                             <div>
                                 {{ $this->getSmsCodeForm() }}
                             </div>

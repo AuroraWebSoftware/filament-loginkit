@@ -527,12 +527,9 @@ class Login extends BaseLogin
         session()->put('login_type', 'sms');
 
         Filament::auth()->login($user, false);
-
         request()->session()->regenerate();
 
-        $this->redirectIntended(Filament::getUrl(), navigate: true);
-
-        return null;
+        return redirect()->intended(\Filament\Facades\Filament::getUrl());
     }
 
     public function loginWithFortify(): LoginResponse | Redirector | Response | null

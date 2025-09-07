@@ -3,6 +3,7 @@
 namespace AuroraWebSoftware\FilamentLoginKit;
 
 use AuroraWebSoftware\FilamentLoginKit\Commands\FilamentLoginKitCommand;
+use AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\SmsVerify;
 use AuroraWebSoftware\FilamentLoginKit\Http\Responses\LoginResponse;
 use AuroraWebSoftware\FilamentLoginKit\Http\Responses\TwoFactorChallengeViewResponse;
 use AuroraWebSoftware\FilamentLoginKit\Http\Responses\TwoFactorLoginResponse;
@@ -44,13 +45,6 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
          */
         $package->name(static::$name)
             ->hasCommands($this->getCommands());
-        //            ->hasInstallCommand(function (InstallCommand $command) {
-        //                $command
-        //                    ->publishConfigFile()
-        //                    ->publishMigrations()
-        //                    ->askToRunMigrations()
-        //                    ->askToStarRepoOnGitHub(':vendor_slug/:package_slug');
-        //            });
 
         $configFileName = $package->shortName();
 
@@ -117,7 +111,6 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
             'default' => $color,
         ]);
 
-        // Handle Stubs
         if (app()->runningInConsole()) {
             foreach (app(Filesystem::class)->files(__DIR__ . '/../stubs/') as $file) {
                 $this->publishes([
@@ -155,27 +148,31 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
 
         $this->overrideFortifyViews();
 
-        Route::domain(config('filament.domain'))
-            ->middleware(config('filament.middleware.base'))
-            ->name('filament.')
-            ->group(function () {
-                /**
-                 * We do not need to override logout response and logout path as:
-                 * - logout response for both filament and fortify does
-                 *    basically the same things except fortify handle for api calls
-                 * - for api calls still can use POST fortify's /logout route
-                 * - filament's logout route is at /filament/logout
-                 */
+        $base = (array)config('filament.middleware.base');
+        $base = array_values(array_filter($base, fn($m) => is_string($m) && trim($m) !== ''));
 
-                /**
-                 * Redeclare filament.auth.login route as fortify override it
-                 * This route name is used multiple places in filament.
-                 */
-                Route::prefix(config('filament.path'))->group(function () {
-                    Route::get('/filament-login', fn () => Redirect::route('login'))
-                        ->name('auth.login');
-                });
-            });
+        if (!in_array('web', $base, true)) {
+            $base[] = 'web';
+        }
+
+        $router = \Illuminate\Support\Facades\Route::middleware($base)->name('filament.');
+
+        $domain = config('filament.domain');
+        if (is_string($domain) && $domain !== '') {
+            $router = $router->domain($domain);
+        }
+
+        $panelPath = \Filament\Facades\Filament::getDefaultPanel()?->getPath()
+            ?? config('filament.path', 'filament')
+            ?: 'filament';
+        $router->prefix($panelPath)->group(function () {
+            Route::get('/filament-login', fn() => Redirect::route('login'))
+                ->name('auth.login');
+
+            Route::get('/sms-verify', \AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\SmsVerify::class)
+                ->name('auth.sms-verify');
+        });
+
 
         \Illuminate\Support\Facades\Event::listen(
             \Laravel\Fortify\Events\TwoFactorAuthenticationChallenged::class,
@@ -268,6 +265,10 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
         Livewire::component(
             'two-factor',
             config('filament-loginkit.two_factor_settings')
+        );
+        Livewire::component(
+            'aurora-web-software.filament-login-kit.http.livewire.auth.sms-verify',
+            SmsVerify::class
         );
 
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);

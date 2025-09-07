@@ -12,7 +12,7 @@ return [
 
     'email_login' => env('LOGINKIT_EMAIL_LOGIN_ENABLED', true),
 
-    'sms_login' => env('LOGINKIT_SMS_LOGIN_ENABLED', false),
+    'sms_login' => env('LOGINKIT_SMS_LOGIN_ENABLED', true),
 
     'reset_password_enabled' => true,
 
@@ -154,6 +154,7 @@ return [
             'code_length' => 6,
             'code_ttl' => 5,
         ],
+        '2fa_settings_visibility' => env('LOGINKIT_ACCOUNT_PAGE_2FA_SETTINGS_VISIBILITY', false),
     ],
 
     /*

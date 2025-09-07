@@ -18,18 +18,26 @@ use Illuminate\Support\Facades\Schema;
 class SmsVerify extends Page
 {
     protected static ?string $navigationIcon = null;
-    protected static string $view   = 'filament-loginkit::auth.sms-verify';
+
+    protected static string $view = 'filament-loginkit::auth.sms-verify';
+
     protected static string $layout = 'filament-panels::components.layout.simple';
 
-    public function getHeading(): string { return ''; }
+    public function getHeading(): string
+    {
+        return '';
+    }
 
     public ?string $phone_number = null;
-    public string  $sms_code     = '';
 
-    public int  $maxSmsAttempts;
-    public int  $smsAttemptDecay;
+    public string $sms_code = '';
 
-    public int  $countdown = 0;
+    public int $maxSmsAttempts;
+
+    public int $smsAttemptDecay;
+
+    public int $countdown = 0;
+
     public bool $canResend = false;
 
     public function mount(): void
@@ -41,13 +49,14 @@ class SmsVerify extends Page
             'primary' => is_string($panelPrimary) ? Color::hex($panelPrimary) : $panelPrimary,
         ]);
 
-        $this->maxSmsAttempts  = (int) config('filament-loginkit.sms.max_wrong_attempts');
+        $this->maxSmsAttempts = (int) config('filament-loginkit.sms.max_wrong_attempts');
         $this->smsAttemptDecay = (int) config('filament-loginkit.sms.wrong_attempt_decay');
 
         $this->phone_number = session('flk_sms_phone');
 
         if (! $this->phone_number) {
             $this->redirect(Filament::getLoginUrl(), navigate: false);
+
             return;
         }
 
@@ -71,7 +80,7 @@ class SmsVerify extends Page
             }
 
             $user->update([
-                'sms_login_code'       => null,
+                'sms_login_code' => null,
                 'sms_login_expires_at' => null,
             ]);
 
@@ -88,6 +97,7 @@ class SmsVerify extends Page
                     ->body(__('filament-loginkit::filament-loginkit.sms.max_wrong_body'))
                     ->danger()
                     ->send();
+
                 return;
             }
 
@@ -96,6 +106,7 @@ class SmsVerify extends Page
                 ->body(__('filament-loginkit::filament-loginkit.sms.invalid_code_body'))
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -117,6 +128,7 @@ class SmsVerify extends Page
                 ->body(__('filament-loginkit::filament-loginkit.sms.inactive_body'))
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -135,6 +147,7 @@ class SmsVerify extends Page
                 ->body(__('filament-loginkit::filament-loginkit.sms.invalid_session_body'))
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -145,6 +158,7 @@ class SmsVerify extends Page
                 ->body(__('filament-loginkit::filament-loginkit.sms.generic_fail_body'))
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -154,6 +168,7 @@ class SmsVerify extends Page
                 ->body(__('filament-loginkit::filament-loginkit.sms.inactive_body'))
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -164,10 +179,11 @@ class SmsVerify extends Page
                 ->body(__('filament-loginkit::filament-loginkit.sms.too_many_requests_body'))
                 ->danger()
                 ->send();
+
             return;
         }
 
-        $resendKey    = 'sms_resend:' . md5($this->phone_number);
+        $resendKey = 'sms_resend:' . md5($this->phone_number);
         $resendWindow = (int) config('filament-loginkit.sms.resend.window_minutes');
         if ($this->cacheIncrement($resendKey, $resendWindow * 60) >
             (int) config('filament-loginkit.sms.resend.max_requests')) {
@@ -177,13 +193,14 @@ class SmsVerify extends Page
                 ->body(__('filament-loginkit::filament-loginkit.sms.resend_limit_body', ['window_minutes' => $resendWindow]))
                 ->danger()
                 ->send();
+
             return;
         }
 
         $code = $this->generateSmsCode();
 
         $user->update([
-            'sms_login_code'       => Hash::make($code),
+            'sms_login_code' => Hash::make($code),
             'sms_login_expires_at' => now()->addMinutes(config('filament-loginkit.sms.code_ttl')),
         ]);
 
@@ -211,15 +228,18 @@ class SmsVerify extends Page
     {
         if (! Cache::has($key)) {
             Cache::put($key, 1, $ttl);
+
             return 1;
         }
         Cache::increment($key);
+
         return (int) Cache::get($key);
     }
 
     private function generateSmsCode(): string
     {
         $len = (int) config('filament-loginkit.sms.code_length');
+
         return str_pad((string) random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
     }
 

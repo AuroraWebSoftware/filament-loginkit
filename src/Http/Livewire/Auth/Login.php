@@ -43,14 +43,19 @@ class Login extends BaseLogin
     public string $email = '';
 
     public string $password = '';
+
     public string $loginTab = 'email';
 
     public string $phone_number = '';
+
     public string $turnstileToken = '';
 
     public string $turnstileTokenSms = '';
+
     public ?array $phoneData = [];
+
     public bool $resetPasswordEnabled = true;
+
     public bool $registrationEnabled = false;
 
     public int $maxSmsAttempts;
@@ -82,7 +87,7 @@ class Login extends BaseLogin
 
     private function cacheIncrement(string $key, int $ttl): int
     {
-        if (!Cache::has($key)) {
+        if (! Cache::has($key)) {
             Cache::put($key, 1, $ttl);
 
             return 1;
@@ -96,7 +101,7 @@ class Login extends BaseLogin
     {
         return $user
             && Schema::hasColumn('users', 'is_active')
-            && !(bool)$user->is_active;
+            && ! (bool) $user->is_active;
     }
 
     //    private function ipThrottle(string $suffix): bool
@@ -182,7 +187,7 @@ class Login extends BaseLogin
 
     private function verifyTurnstileOrNotify(?string $token, string $property = 'turnstileToken'): bool
     {
-        if (blank($token) || !$this->verifyTurnstile($token)) {
+        if (blank($token) || ! $this->verifyTurnstile($token)) {
             $this->resetTurnstile($property);
 
             Notification::make()
@@ -247,36 +252,41 @@ class Login extends BaseLogin
     public function sendSmsCode()
     {
         $limits = config('filament-loginkit.rate_limits.sms');
+
         try {
             $this->rateLimit($limits['max_requests'], $limits['per_minutes'] * 60);
         } catch (TooManyRequestsException $e) {
             $this->errorNotify('too_many_attempts', 'sms', ['seconds' => $e->secondsUntilAvailable ?? 60]);
+
             return;
         }
 
         $this->phone_number = $this->getSmsPhoneForm()->getState()['phone_number'] ?? '';
         $user = \App\Models\User::where('phone_number', $this->phone_number)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->errorNotify('not_found', 'sms');
+
             return;
         }
 
         if ($this->isUserInactive($user)) {
             $this->errorNotify('inactive', 'sms');
+
             return;
         }
 
         $floodKey = 'sms_flood:' . md5($this->phone_number);
-        $floodWindow = (int)config('filament-loginkit.sms.flood.window_minutes');
+        $floodWindow = (int) config('filament-loginkit.sms.flood.window_minutes');
         if ($this->cacheIncrement($floodKey, $floodWindow * 60) >
-            (int)config('filament-loginkit.sms.flood.max_per_window')) {
+            (int) config('filament-loginkit.sms.flood.max_per_window')) {
             $this->errorNotify('too_many_requests', 'sms');
+
             return;
         }
 
         if (config('filament-loginkit.turnstile.enabled') &&
-            !$this->verifyTurnstileOrNotify($this->turnstileTokenSms)) {
+            ! $this->verifyTurnstileOrNotify($this->turnstileTokenSms)) {
             return;
         }
 
@@ -296,7 +306,7 @@ class Login extends BaseLogin
 
         $user->update([
             'sms_login_code' => \Illuminate\Support\Facades\Hash::make($code),
-            'sms_login_expires_at' => now()->addMinutes((int)config('filament-loginkit.sms.code_ttl')),
+            'sms_login_expires_at' => now()->addMinutes((int) config('filament-loginkit.sms.code_ttl')),
         ]);
 
         $this->dispatchSms($user, $code);
@@ -313,7 +323,7 @@ class Login extends BaseLogin
         return $this->redirect(url($panelPath . '/sms-verify'), navigate: false);
     }
 
-    public function loginWithFortify(): LoginResponse|Redirector|Response|null
+    public function loginWithFortify(): LoginResponse | Redirector | Response | null
     {
         $limits = config('filament-loginkit.rate_limits.login');
 
@@ -326,12 +336,12 @@ class Login extends BaseLogin
         }
 
         if (config('filament-loginkit.turnstile.enabled') &&
-            !$this->verifyTurnstileOrNotify($this->turnstileToken)) {
+            ! $this->verifyTurnstileOrNotify($this->turnstileToken)) {
             return null;
         }
 
         $data = $this->form->getState();
-        if (!$this->validateCredentials($this->getCredentialsFromFormData($data))) {
+        if (! $this->validateCredentials($this->getCredentialsFromFormData($data))) {
             $this->errorNotify('invalid_credentials');
             $this->dispatch('resetTurnstile');
 
@@ -352,7 +362,7 @@ class Login extends BaseLogin
 
         return $this->loginPipeline($req)->then(function () use ($data) {
 
-            if (!Filament::auth()->attempt(
+            if (! Filament::auth()->attempt(
                 $this->getCredentialsFromFormData($data),
                 $data['remember'] ?? false
             )) {
@@ -367,9 +377,9 @@ class Login extends BaseLogin
                 $this->throwFailureValidationException();
             }
 
-            if (!Filament::getCurrentPanel() ||
+            if (! Filament::getCurrentPanel() ||
                 ($user instanceof FilamentUser &&
-                    !$user->canAccessPanel(Filament::getCurrentPanel()))) {
+                    ! $user->canAccessPanel(Filament::getCurrentPanel()))) {
                 Filament::auth()->logout();
                 $this->throwFailureValidationException();
             }
@@ -421,10 +431,10 @@ class Login extends BaseLogin
             ->hint(
                 Filament::hasPasswordReset()
                     ? new HtmlString(Blade::render(
-                    '<x-filament::link :href="filament()->getRequestPasswordResetUrl()" tabindex="3">
+                        '<x-filament::link :href="filament()->getRequestPasswordResetUrl()" tabindex="3">
                             {{ __(\'filament-panels::pages/auth/login.actions.request_password_reset.label\') }}
                          </x-filament::link>'
-                ))
+                    ))
                     : null
             );
     }
@@ -444,5 +454,4 @@ class Login extends BaseLogin
 
         return $user && $provider->validateCredentials($user, $credentials);
     }
-
 }

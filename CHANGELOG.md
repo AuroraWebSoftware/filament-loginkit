@@ -2,6 +2,15 @@
 
 All notable changes to `:package_name` will be documented in this file.
 
+## 12.0.7 - 2025-09-08
+
+### What's Changed
+
+* - Fixed the 419 expired page error in SMS login by @MFarukDemirkoparan in https://github.com/AuroraWebSoftware/filament-loginkit/pull/11
+  
+
+**Full Changelog**: https://github.com/AuroraWebSoftware/filament-loginkit/compare/12.0.6...12.0.7
+
 ## 12.0.6 - 2025-09-05
 
 ### What's Changed

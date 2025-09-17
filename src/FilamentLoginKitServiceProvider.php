@@ -148,10 +148,10 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
 
         $this->overrideFortifyViews();
 
-        $base = (array)config('filament.middleware.base');
-        $base = array_values(array_filter($base, fn($m) => is_string($m) && trim($m) !== ''));
+        $base = (array) config('filament.middleware.base');
+        $base = array_values(array_filter($base, fn ($m) => is_string($m) && trim($m) !== ''));
 
-        if (!in_array('web', $base, true)) {
+        if (! in_array('web', $base, true)) {
             $base[] = 'web';
         }
 
@@ -166,13 +166,12 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
             ?? config('filament.path', 'filament')
             ?: 'filament';
         $router->prefix($panelPath)->group(function () {
-            Route::get('/filament-login', fn() => Redirect::route('login'))
+            Route::get('/filament-login', fn () => Redirect::route('login'))
                 ->name('auth.login');
 
             Route::get('/sms-verify', \AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\SmsVerify::class)
                 ->name('auth.sms-verify');
         });
-
 
         \Illuminate\Support\Facades\Event::listen(
             \Laravel\Fortify\Events\TwoFactorAuthenticationChallenged::class,

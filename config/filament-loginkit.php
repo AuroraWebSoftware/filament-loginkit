@@ -158,6 +158,7 @@ return [
     ],
 
     'twilio'=>[
+        'enabled' => env('LOGINKIT_TWILIO_ENABLED', false),
         'sid' => env('LOGINKIT_TWILIO_SID'),
         'token' => env('LOGINKIT_TWILIO_TOKEN'),
         'whatsapp_from' => env('LOGINKIT_TWILIO_WHATSAPP_FROM'),

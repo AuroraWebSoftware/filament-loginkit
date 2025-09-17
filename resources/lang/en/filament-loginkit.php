@@ -6,7 +6,7 @@ return [
     'password_reset' => 'Your password reset code: :code',
 
     'email_login_tab' => 'Login with Email',
-    'sms_login_tab' => 'Login with SMS',
+    'sms_login_tab' => 'Login with Phone',
 
     'form' => [
         'email' => 'Email',
@@ -34,7 +34,8 @@ return [
         'phone_title' => 'Enter Your Phone Number',
         'phone_instruction' => 'You can log in via SMS by entering your registered phone number.',
         'send_code' => 'Send SMS Code',
-        'login' => 'Login',
+        'login' => 'Login with SMS',
+        'login_whatsapp' => 'Login with Whatsapp',
         'code_title' => 'Verification Code',
         'code_instruction' => 'Enter the :length-digit code sent to :number.',
         'verify' => 'Verify',
@@ -232,4 +233,7 @@ return [
     'please_select_2fa' => 'Please select a two-factor authentication method.',
     'please_select_2fa_description' => 'To increase the security of your account, you must set up two-factor authentication.',
 
+    'twillio' => [
+        'whatsapp_login_message' => 'Your login code is: :code. The code is valid for :minutes minutes.',
+    ]
 ];

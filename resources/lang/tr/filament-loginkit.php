@@ -6,7 +6,7 @@ return [
     'password_reset' => 'Şifre sıfırlama kodunuz: :code',
 
     'email_login_tab' => 'Email ile Giriş',
-    'sms_login_tab' => 'SMS ile Giriş',
+    'sms_login_tab' => 'Telefon ile Giriş',
 
     'generic_fail_title' => 'İşlem Başarısız',
     'generic_fail_body' => 'İşlem başarısız oldu, lütfen tekrar deneyin.',
@@ -37,7 +37,8 @@ return [
         'phone_title' => 'Telefon Numaranızı Girin',
         'phone_instruction' => 'Kayıtlı telefon numaranızı girerek SMS ile giriş yapabilirsiniz.',
         'send_code' => 'SMS Kodu Gönder',
-        'login' => 'Giriş Yap',
+        'login' => 'SMS Giriş',
+        'login_whatsapp' => 'Whatsapp Giriş',
         'code_title' => 'Doğrulama Kodu',
         'code_instruction' => ':number numarasına gönderilen :length haneli kodu girin.',
         'verify' => 'Doğrula',
@@ -247,4 +248,7 @@ return [
     'please_select_2fa' => 'Lütfen iki faktörlü kimlik doğrulama yöntemi seçiniz.',
     'please_select_2fa_description' => 'Hesabınızın güvenliğini artırmak için iki faktörlü kimlik doğrulama ayarınızı yapmanız gerekmektedir.',
 
+    'twillio' => [
+        'whatsapp_login_message' => 'Giriş kodunuz: :code. Kod :minutes dakika geçerlidir.',
+    ]
 ];

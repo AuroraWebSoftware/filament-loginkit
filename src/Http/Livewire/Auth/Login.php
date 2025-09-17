@@ -32,6 +32,7 @@ use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Livewire\Features\SupportRedirects\Redirector;
+use Twilio\Rest\Client;
 use Ysfkaya\FilamentPhoneInput\Forms\PhoneInput;
 
 class Login extends BaseLogin
@@ -443,6 +444,134 @@ class Login extends BaseLogin
         $user = $provider->retrieveByCredentials($credentials);
 
         return $user && $provider->validateCredentials($user, $credentials);
+    }
+
+
+    private function dispatchWhatsapp(User $user, string $code): void
+    {
+        $sid = config('filament-loginkit.twilio.sid');
+        $token = config('filament-loginkit.twilio.token');
+        $from = config('filament-loginkit.twilio.whatsapp_from');
+        $tplSid = config('filament-loginkit.twilio.whatsapp_template_sid');
+
+        if (blank($sid) || blank($token) || blank($from) || blank($tplSid)) {
+            Log::error('Twilio WhatsApp credentials missing.');
+            throw new \RuntimeException('Twilio WhatsApp credentials missing.');
+        }
+
+        $client = new Client($sid, $token);
+
+        $to = 'whatsapp:' . ltrim($user->phone_number, '+');
+
+        if (!str_starts_with($from, 'whatsapp:')) {
+            $from = 'whatsapp:' . ltrim($from, '+');
+        }
+        try {
+            $message = $client->messages->create(
+                $to,
+                [
+                    'from' => $from,
+                    'contentSid' => $tplSid,
+                    'contentVariables' => json_encode([
+                        1 => $user->name,
+                        2 => $code,
+                    ]),
+                ]
+            );
+//            Log::info('WhatsApp message queued', [
+//                'sid'    => $message->sid ?? null,
+//                'status' => $message->status ?? null,
+//                'to'     => $to,
+//            ]);
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp send failed', [
+                'to' => $to,
+                'from' => $from,
+                'tplSid' => $tplSid,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function sendWhatsappCode()
+    {
+        $limits = config('filament-loginkit.rate_limits.sms');
+        try {
+            $this->rateLimit($limits['max_requests'], $limits['per_minutes'] * 60);
+        } catch (TooManyRequestsException $e) {
+            $this->errorNotify('too_many_attempts', 'sms', ['seconds' => $e->secondsUntilAvailable ?? 60]);
+            return;
+        }
+
+
+        $this->phone_number = $this->getSmsPhoneForm()->getState()['phone_number'] ?? '';
+        if (blank($this->phone_number)) {
+            $this->errorNotify('not_found', 'sms');
+            return;
+        }
+
+        $user = \App\Models\User::where('phone_number', $this->phone_number)->first();
+        if (!$user) {
+            $this->errorNotify('not_found', 'sms');
+            return;
+        }
+
+        if ($this->isUserInactive($user)) {
+            $this->errorNotify('inactive', 'sms');
+            return;
+        }
+
+        $floodKey = 'wa_flood:' . md5($this->phone_number);
+        $floodWindow = (int)config('filament-loginkit.sms.flood.window_minutes');
+        if ($this->cacheIncrement($floodKey, $floodWindow * 60) >
+            (int)config('filament-loginkit.sms.flood.max_per_window')) {
+            $this->errorNotify('too_many_requests', 'sms');
+            return;
+        }
+
+        if (config('filament-loginkit.turnstile.enabled') &&
+            !$this->verifyTurnstileOrNotify($this->turnstileTokenSms, 'turnstileTokenSms')) {
+            return;
+        }
+
+        $panelPath = Filament::getDefaultPanel()?->getPath()
+            ?? config('filament.path', 'filament');
+        session()->put('flk_panel_id', Filament::getCurrentPanel()?->getId());
+        session()->put('flk_sms_phone', $this->phone_number);
+
+        if ($user->sms_login_expires_at && now()->lessThan($user->sms_login_expires_at)) {
+            $this->turnstileTokenSms = '';
+            $this->dispatch('resetTurnstile');
+
+            return $this->redirect(url($panelPath . '/sms-verify'), navigate: false);
+        }
+
+        $code = $this->generateSmsCode();
+
+        $user->update([
+            'sms_login_code' => \Illuminate\Support\Facades\Hash::make($code),
+            'sms_login_expires_at' => now()->addMinutes((int)config('filament-loginkit.sms.code_ttl')),
+        ]);
+
+        try {
+            $this->dispatchWhatsapp($user, $code);
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp dispatch failed', ['msg' => $e->getMessage()]);
+            $this->errorNotify('send_failed', 'sms');
+            return;
+        }
+
+        Notification::make()
+            ->title(__('filament-loginkit::filament-loginkit.sms.sent_title'))
+            ->body(__('filament-loginkit::filament-loginkit.sms.sent_body'))
+            ->success()
+            ->send();
+
+        $this->turnstileTokenSms = '';
+        $this->dispatch('resetTurnstile');
+
+        return $this->redirect(url($panelPath . '/sms-verify'), navigate: false);
     }
 
 }

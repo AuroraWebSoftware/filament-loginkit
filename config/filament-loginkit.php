@@ -157,6 +157,13 @@ return [
         '2fa_settings_visibility' => env('LOGINKIT_ACCOUNT_PAGE_2FA_SETTINGS_VISIBILITY', false),
     ],
 
+    'twilio'=>[
+        'sid' => env('LOGINKIT_TWILIO_SID'),
+        'token' => env('LOGINKIT_TWILIO_TOKEN'),
+        'whatsapp_from' => env('LOGINKIT_TWILIO_WHATSAPP_FROM'),
+        'whatsapp_template_sid' => env('LOGINKIT_TWILIO_WHATSAPP_TEMPLATE_SID'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Class Aliases

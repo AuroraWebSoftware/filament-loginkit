@@ -13,7 +13,9 @@ use Filament\Support\Facades\FilamentColor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Twilio\Rest\Client;
 
 class SmsVerify extends Page
 {
@@ -40,6 +42,8 @@ class SmsVerify extends Page
 
     public bool $canResend = false;
 
+    public string $loginType = 'sms';
+
     public function mount(): void
     {
         $panel = Filament::getPanel(session('flk_panel_id'));
@@ -49,12 +53,13 @@ class SmsVerify extends Page
             'primary' => is_string($panelPrimary) ? Color::hex($panelPrimary) : $panelPrimary,
         ]);
 
-        $this->maxSmsAttempts = (int) config('filament-loginkit.sms.max_wrong_attempts');
-        $this->smsAttemptDecay = (int) config('filament-loginkit.sms.wrong_attempt_decay');
+        $this->maxSmsAttempts = (int)config('filament-loginkit.sms.max_wrong_attempts');
+        $this->smsAttemptDecay = (int)config('filament-loginkit.sms.wrong_attempt_decay');
 
         $this->phone_number = session('flk_sms_phone');
+        $this->loginType = session('flk_login_type', 'sms');
 
-        if (! $this->phone_number) {
+        if (!$this->phone_number) {
             $this->redirect(Filament::getLoginUrl(), navigate: false);
 
             return;
@@ -71,23 +76,23 @@ class SmsVerify extends Page
 
         DB::transaction(function () use (&$loginSucceeded, &$user, $code) {
             $user = User::where('phone_number', $this->phone_number)
-                ->where('sms_login_expires_at', '>', now())
+                ->where("{$this->loginType}_login_expires_at", '>', now())
                 ->lockForUpdate()
                 ->first();
 
-            if (! $user || ! Hash::check($code, $user->sms_login_code)) {
+            if (!$user || !Hash::check($code, $user->{$this->loginType . '_login_code'})) {
                 return;
             }
 
             $user->update([
-                'sms_login_code' => null,
-                'sms_login_expires_at' => null,
+                "{$this->loginType}_login_code" => null,
+                "{$this->loginType}_login_expires_at" => null,
             ]);
 
             $loginSucceeded = true;
         });
 
-        if (! $loginSucceeded) {
+        if (!$loginSucceeded) {
             $wrongKey = 'sms_wrong:' . md5($this->phone_number);
             $attempts = $this->cacheIncrement($wrongKey, $this->smsAttemptDecay);
 
@@ -121,7 +126,7 @@ class SmsVerify extends Page
         session()->forget('flk_sms_phone');
 
         $panel = $panelId ? Filament::getPanel($panelId) : Filament::getCurrentPanel();
-        if (! $panel || ($user instanceof FilamentUser && ! $user->canAccessPanel($panel))) {
+        if (!$panel || ($user instanceof FilamentUser && !$user->canAccessPanel($panel))) {
             Filament::auth()->logout();
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.sms.inactive_title'))
@@ -152,7 +157,7 @@ class SmsVerify extends Page
         }
 
         $user = User::where('phone_number', $this->phone_number)->first();
-        if (! $user) {
+        if (!$user) {
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.sms.generic_fail_title'))
                 ->body(__('filament-loginkit::filament-loginkit.sms.generic_fail_body'))
@@ -184,9 +189,9 @@ class SmsVerify extends Page
         }
 
         $resendKey = 'sms_resend:' . md5($this->phone_number);
-        $resendWindow = (int) config('filament-loginkit.sms.resend.window_minutes');
+        $resendWindow = (int)config('filament-loginkit.sms.resend.window_minutes');
         if ($this->cacheIncrement($resendKey, $resendWindow * 60) >
-            (int) config('filament-loginkit.sms.resend.max_requests')) {
+            (int)config('filament-loginkit.sms.resend.max_requests')) {
 
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.sms.resend_limit_title'))
@@ -200,13 +205,26 @@ class SmsVerify extends Page
         $code = $this->generateSmsCode();
 
         $user->update([
-            'sms_login_code' => Hash::make($code),
-            'sms_login_expires_at' => now()->addMinutes(config('filament-loginkit.sms.code_ttl')),
+            "{$this->loginType}_login_code" => Hash::make($code),
+            "{$this->loginType}_login_expires_at" => now()->addMinutes(config('filament-loginkit.sms.code_ttl')),
         ]);
 
-        $this->dispatchSms($user, $code);
+        try {
+            if ($this->loginType === 'sms') {
+                $this->dispatchSms($user, $code);
+            } else {
+                $this->dispatchWhatsapp($user, $code);
+            }
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title(__('filament-loginkit::filament-loginkit.sms.send_failed_title'))
+                ->body(__('filament-loginkit::filament-loginkit.sms.send_failed_body'))
+                ->danger()
+                ->send();
+            return;
+        }
 
-        $this->cacheIncrement($floodKey, (int) config('filament-loginkit.sms.flood.window_minutes') * 60);
+        $this->cacheIncrement($floodKey, (int)config('filament-loginkit.sms.flood.window_minutes') * 60);
 
         $this->startCountdown();
 
@@ -221,26 +239,26 @@ class SmsVerify extends Page
     {
         return $user
             && Schema::hasColumn('users', 'is_active')
-            && ! (bool) $user->is_active;
+            && !(bool)$user->is_active;
     }
 
     private function cacheIncrement(string $key, int $ttl): int
     {
-        if (! Cache::has($key)) {
+        if (!Cache::has($key)) {
             Cache::put($key, 1, $ttl);
 
             return 1;
         }
         Cache::increment($key);
 
-        return (int) Cache::get($key);
+        return (int)Cache::get($key);
     }
 
     private function generateSmsCode(): string
     {
-        $len = (int) config('filament-loginkit.sms.code_length');
+        $len = (int)config('filament-loginkit.sms.code_length');
 
-        return str_pad((string) random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
+        return str_pad((string)random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
     }
 
     private function dispatchSms(User $user, string $code): void
@@ -258,7 +276,7 @@ class SmsVerify extends Page
 
     public function startCountdown(): void
     {
-        $seconds = (int) config('filament-loginkit.sms.resend_cooldown', 60);
+        $seconds = (int)config('filament-loginkit.sms.resend_cooldown', 60);
         $this->countdown = $seconds;
         $this->canResend = false;
         $this->dispatch('start-countdown', seconds: $seconds);
@@ -274,5 +292,47 @@ class SmsVerify extends Page
     {
         $this->countdown = $value;
         $this->canResend = $value <= 0;
+    }
+
+    private function dispatchWhatsapp(User $user, string $code): void
+    {
+        $sid = config('filament-loginkit.twilio.sid');
+        $token = config('filament-loginkit.twilio.token');
+        $from = config('filament-loginkit.twilio.whatsapp_from');
+        $tplSid = config('filament-loginkit.twilio.whatsapp_template_sid');
+
+        if (blank($sid) || blank($token) || blank($from) || blank($tplSid)) {
+            Log::error('Twilio WhatsApp credentials missing.');
+            throw new \RuntimeException('Twilio WhatsApp credentials missing.');
+        }
+
+        $client = new Client($sid, $token);
+
+        $to = 'whatsapp:' . (str_starts_with($user->phone_number, '+')
+                ? $user->phone_number
+                : '+' . $user->phone_number);
+
+        if (!str_starts_with($from, 'whatsapp:')) {
+            $from = 'whatsapp:' . (str_starts_with($from, '+') ? $from : '+' . $from);
+        }
+
+        try {
+            $client->messages->create(
+                $to,
+                [
+                    'from' => $from,
+                    'contentSid' => $tplSid,
+                    'contentVariables' => json_encode([1 => $code]),
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp send failed', [
+                'to' => $to,
+                'from' => $from,
+                'tplSid' => $tplSid,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 }

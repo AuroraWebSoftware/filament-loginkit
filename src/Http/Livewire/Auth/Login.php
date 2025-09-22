@@ -285,6 +285,7 @@ class Login extends BaseLogin
             ?? config('filament.path', 'filament');
         session()->put('flk_panel_id', Filament::getCurrentPanel()?->getId());
         session()->put('flk_sms_phone', $this->phone_number);
+        session()->put('flk_login_type', 'sms');
 
         if ($user->sms_login_expires_at && now()->lessThan($user->sms_login_expires_at)) {
             $this->turnstileTokenSms = '';
@@ -461,11 +462,14 @@ class Login extends BaseLogin
 
         $client = new Client($sid, $token);
 
-        $to = 'whatsapp:' . ltrim($user->phone_number, '+');
+        $to = 'whatsapp:' . (str_starts_with($user->phone_number, '+')
+                ? $user->phone_number
+                : '+' . $user->phone_number);
 
         if (!str_starts_with($from, 'whatsapp:')) {
-            $from = 'whatsapp:' . ltrim($from, '+');
+            $from = 'whatsapp:' . (str_starts_with($from, '+') ? $from : '+' . $from);
         }
+
         try {
             $message = $client->messages->create(
                 $to,
@@ -473,8 +477,7 @@ class Login extends BaseLogin
                     'from' => $from,
                     'contentSid' => $tplSid,
                     'contentVariables' => json_encode([
-                        1 => $user->name,
-                        2 => $code,
+                        1 => $code,
                     ]),
                 ]
             );
@@ -539,8 +542,9 @@ class Login extends BaseLogin
             ?? config('filament.path', 'filament');
         session()->put('flk_panel_id', Filament::getCurrentPanel()?->getId());
         session()->put('flk_sms_phone', $this->phone_number);
+        session()->put('flk_login_type', 'whatsapp');
 
-        if ($user->sms_login_expires_at && now()->lessThan($user->sms_login_expires_at)) {
+        if ($user->whatsapp_login_expires_at && now()->lessThan($user->whatsapp_login_expires_at)) {
             $this->turnstileTokenSms = '';
             $this->dispatch('resetTurnstile');
 
@@ -550,8 +554,8 @@ class Login extends BaseLogin
         $code = $this->generateSmsCode();
 
         $user->update([
-            'sms_login_code' => \Illuminate\Support\Facades\Hash::make($code),
-            'sms_login_expires_at' => now()->addMinutes((int)config('filament-loginkit.sms.code_ttl')),
+            'whatsapp_login_code' => \Illuminate\Support\Facades\Hash::make($code),
+            'whatsapp_login_expires_at' => now()->addMinutes((int)config('filament-loginkit.sms.code_ttl')),
         ]);
 
         try {

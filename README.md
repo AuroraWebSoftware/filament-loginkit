@@ -67,7 +67,9 @@ class User extends Authenticatable
         'sms_login_expires_at',
         'two_factor_code',
         'two_factor_expires_at',
-        'is_active'
+        'is_active',
+        'whatsapp_login_code',
+        'whatsapp_login_expires_at'
     ];
 
     protected $casts = [
@@ -77,6 +79,7 @@ class User extends Authenticatable
         'is_2fa_required' => 'boolean',
         'two_factor_expires_at' => 'datetime',
         'is_active'=>'boolean'
+        'whatsapp_login_expires_at' => 'datetime',
     ];
 }
 ```

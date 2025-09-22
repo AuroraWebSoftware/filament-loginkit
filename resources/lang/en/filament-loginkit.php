@@ -235,5 +235,5 @@ return [
 
     'twillio' => [
         'whatsapp_login_message' => 'Your login code is: :code. The code is valid for :minutes minutes.',
-    ]
+    ],
 ];

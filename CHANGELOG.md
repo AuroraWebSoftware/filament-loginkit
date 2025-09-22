@@ -2,6 +2,14 @@
 
 All notable changes to `:package_name` will be documented in this file.
 
+## 12.0.9 - 2025-09-22
+
+### What's Changed
+
+* Whatsapp login fix by @MFarukDemirkoparan in https://github.com/AuroraWebSoftware/filament-loginkit/pull/13
+
+**Full Changelog**: https://github.com/AuroraWebSoftware/filament-loginkit/compare/12.0.8...12.0.9
+
 ## 12.0.8 - 2025-09-17
 
 ### What's Changed

@@ -157,7 +157,7 @@ return [
         '2fa_settings_visibility' => env('LOGINKIT_ACCOUNT_PAGE_2FA_SETTINGS_VISIBILITY', false),
     ],
 
-    'twilio'=>[
+    'twilio' => [
         'enabled' => env('LOGINKIT_TWILIO_ENABLED', false),
         'sid' => env('LOGINKIT_TWILIO_SID'),
         'token' => env('LOGINKIT_TWILIO_TOKEN'),

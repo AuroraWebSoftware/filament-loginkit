@@ -250,5 +250,5 @@ return [
 
     'twillio' => [
         'whatsapp_login_message' => 'Giriş kodunuz: :code. Kod :minutes dakika geçerlidir.',
-    ]
+    ],
 ];

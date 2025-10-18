@@ -2,6 +2,14 @@
 
 All notable changes to `:package_name` will be documented in this file.
 
+## 4.0.0 - 2025-10-18
+
+### What's Changed
+
+* Filamentv4 upgrade by @MFarukDemirkoparan in https://github.com/AuroraWebSoftware/filament-loginkit/pull/16
+
+**Full Changelog**: https://github.com/AuroraWebSoftware/filament-loginkit/compare/12.1.0...4.0.0
+
 ## 12.1.0 - 2025-09-22
 
 ### What's Changed

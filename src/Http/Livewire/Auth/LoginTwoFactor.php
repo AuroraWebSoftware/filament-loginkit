@@ -14,7 +14,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\InteractsWithFormActions;
-use Filament\Pages\Page;
+use Filament\Panel;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use Illuminate\Support\Facades\Cache;
@@ -23,15 +23,13 @@ use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Http\Requests\TwoFactorLoginRequest;
 use Livewire\Attributes\Computed;
 
-class LoginTwoFactor extends Page implements HasActions, HasForms
+class LoginTwoFactor extends SimplePage implements HasActions, HasForms
 {
     use InteractsWithFormActions;
     use InteractsWithForms;
     use WithRateLimiting;
 
-    protected static string $layout = 'filament-loginkit::layouts.login';
-
-    protected static string $view = 'filament-loginkit::auth.login-two-factor';
+    protected string $view = 'filament-loginkit::auth.login-two-factor';
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -66,6 +64,11 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
         $this->form->fill();
     }
 
+    public static function registerRoutes(Panel $panel): void
+    {
+        //
+    }
+
     protected function getFormSchema(): array
     {
         return [
@@ -79,7 +82,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
     #[Computed]
     public function canResend(): bool
     {
-        return ! Cache::has('resend_cooldown_' . $this->challengedUser->id);
+        return !Cache::has('resend_cooldown_' . $this->challengedUser->id);
     }
 
     public function resend(): Action
@@ -87,15 +90,15 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
         return Action::make('resend')
             ->label(__('filament-loginkit::filament-loginkit.two_factor.resend'))
             ->color('primary')
-            ->disabled(fn () => ! $this->canResend())
-            ->action(fn () => $this->handleResend());
+            ->disabled(fn() => !$this->canResend())
+            ->action(fn() => $this->handleResend());
     }
 
     public function handleResend(): void
     {
         app()->setLocale(session('locale') ?? $this->challengedUser->locale ?? config('app.locale'));
 
-        if (! $this->canResend() || ! $this->throttle()) {
+        if (!$this->canResend() || !$this->throttle()) {
             return;
         }
 
@@ -158,7 +161,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
     {
         $input = trim($input);
 
-        if (! $this->challengedUser->two_factor_recovery_codes) {
+        if (!$this->challengedUser->two_factor_recovery_codes) {
             return false;
         }
 
@@ -168,7 +171,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
             return false;
         }
 
-        if (! is_array($recoveryCodes)) {
+        if (!is_array($recoveryCodes)) {
             return false;
         }
 
@@ -189,7 +192,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
 
     private function validateTwoFactorCode(string $code): bool
     {
-        if (! $this->challengedUser->two_factor_secret) {
+        if (!$this->challengedUser->two_factor_secret) {
             return false;
         }
 
@@ -218,14 +221,14 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
             return;
         }
 
-        if (! $this->throttle()) {
+        if (!$this->throttle()) {
             return;
         }
 
         if ($this->twoFactorType === 'authenticator') {
             $isValid = $this->validateTwoFactorCode($code) || $this->validateRecoveryCode($code);
 
-            if (! $isValid) {
+            if (!$isValid) {
                 Notification::make()
                     ->title(__('filament-loginkit::filament-loginkit.two_factor.invalid_code'))
                     ->danger()
@@ -235,8 +238,8 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
             }
         } else {
             if (
-                ! $this->challengedUser->two_factor_code ||
-                ! $this->challengedUser->two_factor_expires_at ||
+                !$this->challengedUser->two_factor_code ||
+                !$this->challengedUser->two_factor_expires_at ||
                 now()->greaterThan($this->challengedUser->two_factor_expires_at)
             ) {
                 Notification::make()
@@ -247,7 +250,7 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
                 return;
             }
 
-            if (! Hash::check($code, $this->challengedUser->two_factor_code)) {
+            if (!Hash::check($code, $this->challengedUser->two_factor_code)) {
                 Notification::make()
                     ->title(__('filament-loginkit::filament-loginkit.two_factor.invalid_code'))
                     ->danger()
@@ -267,7 +270,10 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
         session()->regenerate();
         session(['login_2fa_passed' => true]);
 
-        $this->redirect(Filament::getCurrentPanel()?->getUrl() ?? '/', navigate: true);
+        $panelId = session('panel') ?? Filament::getDefaultPanel()?->getId();
+        $panel = Filament::getPanel($panelId);
+
+        $this->redirect($panel?->getUrl() ?? '/', navigate: true);
     }
 
     public function hasLogo(): bool

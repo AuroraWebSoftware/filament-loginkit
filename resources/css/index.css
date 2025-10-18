@@ -1,3 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@source "../../vendor/filament/filament/resources/**/*.blade.php";
+@source "../../vendor/filament/support/resources/**/*.blade.php";
+@source "../../vendor/filament/forms/resources/**/*.blade.php";
+@source "../../vendor/filament/panels/resources/**/*.blade.php";
+
+@source "../views/**/*.blade.php";
+@source "../../src/**/*.php";
+
+@variant dark (&:is(.dark *));

@@ -286,7 +286,7 @@ class FilamentLoginKitServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            // AlpineComponent::make('skeleton', __DIR__ . '/../resources/dist/components/skeleton.js'),
+            // AlpineComponent::make('skeleton', __DIR__ . '/../resources/dist/components/filament-loginkit.js'),
             Css::make('filament-loginkit-styles', __DIR__ . '/../resources/dist/filament-loginkit.css'),
             Js::make('filament-loginkit-scripts', __DIR__ . '/../resources/dist/filament-loginkit.js'),
         ];

@@ -11,6 +11,7 @@ return [
     'generic_fail_title' => 'İşlem Başarısız',
     'generic_fail_body' => 'İşlem başarısız oldu, lütfen tekrar deneyin.',
 
+    'or' => 'veya',
     'form' => [
         'email' => 'E-posta',
         'password' => 'Şifre',
@@ -79,6 +80,7 @@ return [
 
         'inactive_title' => 'Giriş engellendi',
         'inactive_body' => 'Hesabınız pasif durumdadır. Lütfen yöneticiyle iletişime geçin.',
+
     ],
 
     'email' => [
@@ -122,6 +124,7 @@ return [
         'save' => 'Kaydet',
         'saving' => 'Kaydediliyor...',
         'changing_password' => 'Değiştiriliyor...',
+        'phone_number_required_for_sms' => 'SMS doğrulaması için önce telefon numaranızı hesabınıza eklemelisiniz.',
     ],
 
     'fields' => [
@@ -192,6 +195,11 @@ return [
         'too_many_attempts_body' => ':seconds saniye sonra tekrar deneyin.',
         'code_expired' => 'Kodun süresi geçti, yeni kod isteyin.',
         'please_enter_code' => 'Lütfen doğrulama kodunu girin.',
+
+        'too_many_requests' => 'Çok fazla deneme yaptınız. Lütfen :seconds saniye sonra tekrar deneyin.',
+        'code_already_sent' => 'Doğrulama kodu zaten gönderildi. Lütfen :seconds saniye içinde mevcut kodu kullanın.',
+
+        'return_home_page' => 'Ana sayfaya dön',
     ],
 
     'common' => [
@@ -235,6 +243,8 @@ return [
         'recovery_codes_generated' => 'Yeni kurtarma kodları oluşturuldu.',
         'recovery_codes_generation_failed' => 'Kurtarma kodları oluşturulurken bir hata oluştu.',
         'recovery_codes_downloaded' => 'Kurtarma kodları indirildi ve kaydedildi.',
+        'invalid_two_factor_type' => 'Geçersiz iki faktör türü seçildi.',
+        'code_send_failed' => 'Doğrulama kodu gönderilirken bir hata oluştu. Lütfen tekrar deneyin.',
     ],
 
     'confirm' => 'Onayla',
@@ -251,4 +261,6 @@ return [
     'twillio' => [
         'whatsapp_login_message' => 'Giriş kodunuz: :code. Kod :minutes dakika geçerlidir.',
     ],
+
+
 ];

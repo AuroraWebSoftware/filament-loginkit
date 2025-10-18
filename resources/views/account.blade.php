@@ -4,7 +4,7 @@
             <div
                 class="mb-6 rounded-lg border border-yellow-300 bg-yellow-50 dark:bg-yellow-950/40 px-5 py-4 flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-3">
-                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-yellow-500 flex-shrink-0"/>
+                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-yellow-500 shrink-0"/>
                     <div>
                         <div class="font-semibold text-yellow-900 dark:text-yellow-200">
                             {{ __('filament-loginkit::filament-loginkit.please_select_2fa') }}
@@ -25,14 +25,14 @@
 
     <div class="space-y-6">
 
-        <x-filament-panels::form wire:submit="saveAccount">
+        <form wire:submit.prevent="saveAccount" class="space-y-6">
             {{ $this->accountForm }}
             <div class="flex justify-end mt-4">
                 <x-filament::button
                     type="submit"
                     wire:loading.attr="disabled"
                     wire:target="saveAccount"
-                    class="!flex !items-center"
+                    class="flex! items-center!"
                     :disabled="!$canEditAccount"
                 >
             <span wire:loading.remove wire:target="saveAccount" class="flex items-center">
@@ -50,11 +50,11 @@
             </span>
                 </x-filament::button>
             </div>
-        </x-filament-panels::form>
+        </form>
 
 
         <div>
-            <x-filament-panels::form wire:submit="changePassword">
+            <form wire:submit.prevent="changePassword" class="space-y-6">
                 {{ $this->passwordForm }}
                 <div class="flex justify-end mt-4">
                     <x-filament::button
@@ -78,7 +78,7 @@
                         </span>
                     </x-filament::button>
                 </div>
-            </x-filament-panels::form>
+            </form>
         </div>
 
         @if (session()->get('login_type') === 'email')
@@ -171,9 +171,9 @@
                         </div>
 
                         @if($show2faSetup)
-                            <div class="border border-primary-200 dark:border-primary-700 rounded-lg">
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
                                 <div
-                                    class="bg-primary-50 dark:bg-primary-900/20 px-4 py-3 border-b border-primary-200 dark:border-primary-700 flex items-center justify-between">
+                                    class="bg-primary-50 dark:bg-primary-900/20 px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                                     <h3 class="font-medium text-primary-900 dark:text-primary-100">
                                         {{ __('filament-loginkit::filament-loginkit.two_factor.setup_title') }}
                                     </h3>
@@ -197,12 +197,13 @@
                                                 {{ __('filament-loginkit::filament-loginkit.two_factor.select_method') }}
                                             </h4>
 
-                                            <x-filament-panels::form wire:submit="proceed2faSetup">
+
+                                            <form wire:submit.prevent="proceed2faSetup" class="space-y-6">
                                                 {{ $this->twoFactorForm }}
                                                 <div class="flex justify-end mt-4">
                                                     <x-filament::button type="submit" wire:loading.attr="disabled"
                                                                         wire:target="proceed2faSetup"
-                                                                        class="!flex !items-center">
+                                                                        class="flex! items-center!">
                                                     <span wire:loading.remove wire:target="proceed2faSetup"
                                                           class="flex items-center">
                                                         <x-heroicon-m-arrow-right class="w-4 h-4 mr-1"/>
@@ -221,7 +222,7 @@
                                                     </span>
                                                     </x-filament::button>
                                                 </div>
-                                            </x-filament-panels::form>
+                                            </form>
                                         </div>
                                     @endif
 
@@ -328,10 +329,10 @@
                                         color="primary"
                                         size="sm"
                                     >
-    <span class="flex items-center gap-2">
-        <x-heroicon-m-arrow-down-tray class="w-4 h-4"/>
-        {{ __('filament-loginkit::filament-loginkit.two_factor.download_and_close') }}
-    </span>
+                                        <span class="flex items-center gap-2">
+                                            <x-heroicon-m-arrow-down-tray class="w-4 h-4"/>
+                                            {{ __('filament-loginkit::filament-loginkit.two_factor.download_and_close') }}
+                                        </span>
                                     </x-filament::button>
 
                                 </div>
@@ -341,7 +342,7 @@
                                         class="bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-700 rounded-lg p-3 mb-4">
                                         <div class="flex items-start gap-2">
                                             <x-heroicon-s-exclamation-triangle
-                                                class="w-5 h-5 text-danger-600 dark:text-danger-400 flex-shrink-0 mt-0.5"/>
+                                                class="w-5 h-5 text-danger-600 dark:text-danger-400 shrink-0 mt-0.5"/>
                                             <div class="text-sm text-danger-700 dark:text-danger-300">
                                                 {{ __('filament-loginkit::filament-loginkit.two_factor.recovery_codes_warning') }}
                                             </div>
@@ -370,6 +371,20 @@
                         @endif
                     </div>
                 </x-filament::section>
+            </div>
+            @php
+                $panel = filament()->getCurrentPanel();
+                $basePath = $panel ? '/' . ltrim($panel->getPath(), '/') : '/';
+            @endphp
+
+            <div class="mt-10 flex justify-center">
+                <a
+                    href="{{ $basePath }}"
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-primary-600 bg-primary-50 dark:bg-primary-900/20 font-medium hover:bg-primary-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                >
+                    <x-heroicon-m-home class="w-5 h-5"/>
+                    {{ __('filament-loginkit::filament-loginkit.two_factor.return_home_page') }}
+                </a>
             </div>
         @endif
     </div>

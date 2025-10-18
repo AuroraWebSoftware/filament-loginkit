@@ -14,7 +14,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\InteractsWithFormActions;
-use Filament\Pages\Page;
+use Filament\Panel;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use Illuminate\Support\Facades\Cache;
@@ -23,15 +23,13 @@ use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Http\Requests\TwoFactorLoginRequest;
 use Livewire\Attributes\Computed;
 
-class LoginTwoFactor extends Page implements HasActions, HasForms
+class LoginTwoFactor extends SimplePage implements HasActions, HasForms
 {
     use InteractsWithFormActions;
     use InteractsWithForms;
     use WithRateLimiting;
 
-    protected static string $layout = 'filament-loginkit::layouts.login';
-
-    protected static string $view = 'filament-loginkit::auth.login-two-factor';
+    protected string $view = 'filament-loginkit::auth.login-two-factor';
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -64,6 +62,11 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
 
         Cache::put('resend_cooldown_' . $this->challengedUser->id, true, now()->addSeconds(30));
         $this->form->fill();
+    }
+
+    public static function registerRoutes(Panel $panel): void
+    {
+        //
     }
 
     protected function getFormSchema(): array
@@ -267,7 +270,10 @@ class LoginTwoFactor extends Page implements HasActions, HasForms
         session()->regenerate();
         session(['login_2fa_passed' => true]);
 
-        $this->redirect(Filament::getCurrentPanel()?->getUrl() ?? '/', navigate: true);
+        $panelId = session('panel') ?? Filament::getDefaultPanel()?->getId();
+        $panel = Filament::getPanel($panelId);
+
+        $this->redirect($panel?->getUrl() ?? '/', navigate: true);
     }
 
     public function hasLogo(): bool

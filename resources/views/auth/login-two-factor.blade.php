@@ -23,17 +23,15 @@
         </div>
     @endif
 
-    <x-filament-panels::form wire:submit.prevent="submit" statePath="data">
+    <form wire:submit.prevent="submit" class="space-y-6 w-full max-w-xl mx-auto mt-2">
         @csrf
-
-        <input type="text" id="recovery_code" name="recovery_code" value="" style="display:none">
 
         {{ $this->form }}
 
-        <x-filament::button type="submit" class="w-full" color="primary">
+        <x-filament::button type="submit" color="primary" class="w-full">
             {{ __('filament-loginkit::filament-loginkit.two_factor.login') }}
         </x-filament::button>
-    </x-filament-panels::form>
+    </form>
 
 {{--    <div class="fixed bottom-6 right-6">--}}
 {{--        <form method="POST" action="{{ route('logout') }}">--}}

@@ -7,7 +7,7 @@
 
     @if (filament()->hasRegistration())
         <x-slot name="subheading">
-            {{ __('filament-panels::pages/auth/login.actions.register.before') }}
+            {{ __('filament-loginkit::filament-loginkit.or') }}
             {{ $this->registerAction }}
         </x-slot>
     @endif
@@ -17,19 +17,19 @@
     <div class="space-y-8">
         {{-- Tab Yapısı --}}
         @if ($emailEnabled && $smsEnabled)
-
-            <div class="fi-tabs flex overflow-x-auto mb-5">
-                <div class="grid w-full grid-cols-2 gap-x-1 rounded-xl bg-gray-50 p-1 dark:bg-white/5">
+            <div class="flex mb-5">
+                <div class="grid w-full grid-cols-2 gap-x-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
                     <button
                         type="button"
                         wire:click="$set('loginTab', 'email')"
                         @class([
-                            'flex items-center justify-center gap-x-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all duration-200',
-                            'bg-white text-gray-950 shadow-sm ring-1 ring-gray-950/10 dark:bg-white/10 dark:text-white dark:ring-white/20' => $loginTab === 'email',
+                            'flex items-center justify-center gap-x-2 rounded-lg px-3 py-2.5 font-semibold transition-all duration-200',
+                            'text-xs sm:text-sm',
+                            'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:text-white dark:ring-gray-700' => $loginTab === 'email',
                             'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' => $loginTab !== 'email',
                         ])
                     >
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
@@ -40,12 +40,13 @@
                         type="button"
                         wire:click="$set('loginTab', 'sms')"
                         @class([
-                            'flex items-center justify-center gap-x-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all duration-200',
-                            'bg-white text-gray-950 shadow-sm ring-1 ring-gray-950/10 dark:bg-white/10 dark:text-white dark:ring-white/20' => $loginTab === 'sms',
+                            'flex items-center justify-center gap-x-2 rounded-lg px-3 py-2.5 font-semibold transition-all duration-200',
+                            'text-xs sm:text-sm',
+                            'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:text-white dark:ring-gray-700' => $loginTab === 'sms',
                             'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' => $loginTab !== 'sms',
                         ])
                     >
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                         </svg>
@@ -55,10 +56,12 @@
             </div>
         @endif
 
+
+
         <div class="space-y-6">
             @if ($emailEnabled && (!$smsEnabled || ($smsEnabled && $loginTab === 'email')))
                 <div>
-                    <form wire:submit="loginWithFortify">
+                    <form wire:submit="authenticate">
                         <div class="mt-5 mb-6">
                             {{ $this->form }}
                         </div>
@@ -81,7 +84,7 @@
                                     wire:loading
                                     wire:target="loginWithFortify"
                                 />
-                                {{ __('filament-panels::pages/auth/login.form.actions.authenticate.label') }}
+                                {{ __('filament-panels::auth/pages/login.form.actions.authenticate.label') }}
                             </x-filament::button>
                         </div>
                     </form>
@@ -93,7 +96,7 @@
                     <div class="space-y-6">
                         <form wire:submit.prevent="sendSmsCode">
                             <div class="mt-5 mb-6">
-                                {{ $this->getSmsPhoneForm() }}
+                                {{ $this->smsPhoneForm }}
                             </div>
 
                             @if (config('filament-loginkit.turnstile.enabled'))
@@ -114,7 +117,7 @@
                                         wire:target="sendWhatsappCode"
                                     >
             <span class="inline-flex items-center justify-center gap-2">
-                <svg class="h-4 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg class="h-4 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path
                         d="M6.014 8.00613C6.12827 7.1024 7.30277 5.87414 8.23488 6.01043L8.23339 6.00894C9.14051 6.18132 9.85859 7.74261 10.2635 8.44465C10.5504 8.95402 10.3641 9.4701 10.0965 9.68787C9.7355 9.97883 9.17099 10.3803 9.28943 10.7834C9.5 11.5 12 14 13.2296 14.7107C13.695 14.9797 14.0325 14.2702 14.3207 13.9067C14.5301 13.6271 15.0466 13.46 15.5548 13.736C16.3138 14.178 17.0288 14.6917 17.69 15.27C18.0202 15.546 18.0977 15.9539 17.8689 16.385C17.4659 17.1443 16.3003 18.1456 15.4542 17.9421C13.9764 17.5868 8 15.27 6.08033 8.55801C5.97237 8.24048 5.99955 8.12044 6.014 8.00613Z"/>
                     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -140,7 +143,7 @@
                                         wire:target="sendSmsCode"
                                     />
                                     <span class="inline-flex items-center justify-center gap-2">
-            <svg class="h-4 w-5 flex-shrink-0" fill="none" stroke="currentColor"
+            <svg class="h-4 w-5 shrink-0" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                  viewBox="0 0 32 32" aria-hidden="true">
                 <line x1="10" y1="12" x2="19" y2="12"/>

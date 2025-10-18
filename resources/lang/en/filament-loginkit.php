@@ -8,6 +8,8 @@ return [
     'email_login_tab' => 'Login with Email',
     'sms_login_tab' => 'Login with Phone',
 
+    'or' => 'or',
+
     'form' => [
         'email' => 'Email',
         'password' => 'Password',
@@ -112,6 +114,7 @@ return [
         'save' => 'Save',
         'saving' => 'Saving...',
         'changing_password' => 'Changing...',
+        'phone_number_required_for_sms' => 'Please add a phone number before enabling SMS verification.',
     ],
 
     'fields' => [
@@ -177,6 +180,11 @@ return [
         'code_label' => 'Code',
         'resend' => 'Resend',
         'login' => 'Login',
+
+        'too_many_requests' => 'Too many attempts. Please try again in :seconds seconds.',
+        'code_already_sent' => 'A verification code has already been sent. Please use it within :seconds seconds.',
+
+        'return_home_page' => 'Return to Homepage',
     ],
 
     'common' => [
@@ -220,6 +228,9 @@ return [
         'recovery_codes_generated' => 'New recovery codes have been generated.',
         'recovery_codes_generation_failed' => 'An error occurred while generating recovery codes.',
         'recovery_codes_downloaded' => 'Recovery codes have been downloaded and saved.',
+
+        'invalid_two_factor_type' => 'Invalid two-factor authentication type selected.',
+        'code_send_failed' => 'An error occurred while sending the verification code. Please try again.',
     ],
 
     'confirm' => 'Confirm',

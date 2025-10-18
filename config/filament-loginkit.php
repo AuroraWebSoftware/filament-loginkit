@@ -4,9 +4,10 @@ use AuroraWebSoftware\FilamentLoginKit\Enums\TwoFactorType;
 use AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\Login;
 use AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\LoginTwoFactor;
 use AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\PasswordConfirmation;
-use AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\PasswordReset;
 use AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\Register;
-use AuroraWebSoftware\FilamentLoginKit\Http\Livewire\Auth\RequestPasswordReset;
+use AuroraWebSoftware\FilamentLoginKit\Pages\Account;
+use Filament\Auth\Pages\PasswordReset\RequestPasswordReset;
+use Filament\Auth\Pages\PasswordReset\ResetPassword;
 
 return [
 
@@ -63,7 +64,7 @@ return [
         //        'ip_rate_limit' => env('LOGIN_KIT_IP_LIMIT', false),
 
         //        'generic_errors' => env('LOGIN_KIT_GENERIC_ERR', false),
-        'generic_errors' => false,
+        'generic_errors' => true,
     ],
 
     /*
@@ -149,12 +150,16 @@ return [
     ],
 
     'account_page' => [
-        'can_edit' => env('LOGINKIT_ACCOUNT_PAGE_CAN_EDIT', true),
+        'can_edit' => env('LOGINKIT_ACCOUNT_PAGE_CAN_EDIT', false),
         '2fa' => [
             'code_length' => 6,
             'code_ttl' => 5,
         ],
         '2fa_settings_visibility' => env('LOGINKIT_ACCOUNT_PAGE_2FA_SETTINGS_VISIBILITY', false),
+        'rate_limits' => [
+            'max_requests' => 5,
+            'per_minutes' => 1,
+        ],
     ],
 
     'twilio' => [
@@ -177,8 +182,8 @@ return [
     'login' => Login::class,
     'register' => Register::class,
     'challenge' => LoginTwoFactor::class,
-    'two_factor_settings' => \AuroraWebSoftware\FilamentLoginKit\Pages\Account::class,
-    'password_reset' => PasswordReset::class,
+    'two_factor_settings' => Account::class,
+    'password_reset' => ResetPassword::class,
     'password_confirmation' => PasswordConfirmation::class,
     'request_password_reset' => RequestPasswordReset::class,
 ];

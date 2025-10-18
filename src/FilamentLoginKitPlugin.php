@@ -29,7 +29,7 @@ class FilamentLoginKitPlugin implements Plugin
             ->login(config('filament-loginkit.login'))
             ->pages([
                 config('filament-loginkit.two_factor_settings'),
-                config('filament-loginkit.challenge'),
+                //                config('filament-loginkit.challenge'),
             ]);
 
         if ($this->isForced()) {
@@ -53,7 +53,7 @@ class FilamentLoginKitPlugin implements Plugin
         }
 
         if (config('filament-loginkit.reset_password_enabled')) {
-            $panel->passwordReset();
+            $panel->passwordReset(config('filament-loginkit.request_password_reset'));
         }
 
     }

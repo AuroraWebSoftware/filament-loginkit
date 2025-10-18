@@ -159,7 +159,7 @@ return [
         'rate_limits' => [
             'max_requests' => 5,
             'per_minutes' => 1,
-        ]
+        ],
     ],
 
     'twilio' => [

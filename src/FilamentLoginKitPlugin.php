@@ -29,9 +29,8 @@ class FilamentLoginKitPlugin implements Plugin
             ->login(config('filament-loginkit.login'))
             ->pages([
                 config('filament-loginkit.two_factor_settings'),
-//                config('filament-loginkit.challenge'),
-            ])
-        ;
+                //                config('filament-loginkit.challenge'),
+            ]);
 
         if ($this->isForced()) {
             $middlewareMethod = config('filament-two-factor-auth.enabled_features.multi_tenancy') ? 'tenantMiddleware' : 'authMiddleware';

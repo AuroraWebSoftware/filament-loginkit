@@ -37,8 +37,6 @@ abstract class SimplePage extends BasePage
             ->layoutData($this->getLayoutData());
     }
 
-
-
     protected function getLayoutData(): array
     {
         return [

@@ -82,7 +82,7 @@ class LoginTwoFactor extends SimplePage implements HasActions, HasForms
     #[Computed]
     public function canResend(): bool
     {
-        return !Cache::has('resend_cooldown_' . $this->challengedUser->id);
+        return ! Cache::has('resend_cooldown_' . $this->challengedUser->id);
     }
 
     public function resend(): Action
@@ -90,15 +90,15 @@ class LoginTwoFactor extends SimplePage implements HasActions, HasForms
         return Action::make('resend')
             ->label(__('filament-loginkit::filament-loginkit.two_factor.resend'))
             ->color('primary')
-            ->disabled(fn() => !$this->canResend())
-            ->action(fn() => $this->handleResend());
+            ->disabled(fn () => ! $this->canResend())
+            ->action(fn () => $this->handleResend());
     }
 
     public function handleResend(): void
     {
         app()->setLocale(session('locale') ?? $this->challengedUser->locale ?? config('app.locale'));
 
-        if (!$this->canResend() || !$this->throttle()) {
+        if (! $this->canResend() || ! $this->throttle()) {
             return;
         }
 
@@ -161,7 +161,7 @@ class LoginTwoFactor extends SimplePage implements HasActions, HasForms
     {
         $input = trim($input);
 
-        if (!$this->challengedUser->two_factor_recovery_codes) {
+        if (! $this->challengedUser->two_factor_recovery_codes) {
             return false;
         }
 
@@ -171,7 +171,7 @@ class LoginTwoFactor extends SimplePage implements HasActions, HasForms
             return false;
         }
 
-        if (!is_array($recoveryCodes)) {
+        if (! is_array($recoveryCodes)) {
             return false;
         }
 
@@ -192,7 +192,7 @@ class LoginTwoFactor extends SimplePage implements HasActions, HasForms
 
     private function validateTwoFactorCode(string $code): bool
     {
-        if (!$this->challengedUser->two_factor_secret) {
+        if (! $this->challengedUser->two_factor_secret) {
             return false;
         }
 
@@ -221,14 +221,14 @@ class LoginTwoFactor extends SimplePage implements HasActions, HasForms
             return;
         }
 
-        if (!$this->throttle()) {
+        if (! $this->throttle()) {
             return;
         }
 
         if ($this->twoFactorType === 'authenticator') {
             $isValid = $this->validateTwoFactorCode($code) || $this->validateRecoveryCode($code);
 
-            if (!$isValid) {
+            if (! $isValid) {
                 Notification::make()
                     ->title(__('filament-loginkit::filament-loginkit.two_factor.invalid_code'))
                     ->danger()
@@ -238,8 +238,8 @@ class LoginTwoFactor extends SimplePage implements HasActions, HasForms
             }
         } else {
             if (
-                !$this->challengedUser->two_factor_code ||
-                !$this->challengedUser->two_factor_expires_at ||
+                ! $this->challengedUser->two_factor_code ||
+                ! $this->challengedUser->two_factor_expires_at ||
                 now()->greaterThan($this->challengedUser->two_factor_expires_at)
             ) {
                 Notification::make()
@@ -250,7 +250,7 @@ class LoginTwoFactor extends SimplePage implements HasActions, HasForms
                 return;
             }
 
-            if (!Hash::check($code, $this->challengedUser->two_factor_code)) {
+            if (! Hash::check($code, $this->challengedUser->two_factor_code)) {
                 Notification::make()
                     ->title(__('filament-loginkit::filament-loginkit.two_factor.invalid_code'))
                     ->danger()

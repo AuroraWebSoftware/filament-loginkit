@@ -28,7 +28,8 @@ use Ysfkaya\FilamentPhoneInput\Forms\PhoneInput;
 
 class Account extends Page implements HasForms
 {
-    use InteractsWithForms, WithRateLimiting;
+    use InteractsWithForms;
+    use WithRateLimiting;
 
     protected string $view = 'filament-loginkit::account';
 
@@ -49,9 +50,9 @@ class Account extends Page implements HasForms
         $user = Auth::user();
 
         $has2faColumns = $user && (
-                array_key_exists('is_2fa_required', $user->getAttributes()) ||
+            array_key_exists('is_2fa_required', $user->getAttributes()) ||
                 array_key_exists('two_factor_type', $user->getAttributes())
-            );
+        );
 
         if (
             $has2faColumns &&
@@ -120,13 +121,13 @@ class Account extends Page implements HasForms
                                 ->label(__('filament-loginkit::filament-loginkit.fields.name'))
                                 ->required()
                                 ->maxLength(255)
-                                ->disabled(fn() => !$this->canEditAccount),
+                                ->disabled(fn () => ! $this->canEditAccount),
                             TextInput::make('email')
                                 ->label(__('filament-loginkit::filament-loginkit.fields.email'))
                                 ->email()
                                 ->required()
                                 ->maxLength(255)
-                                ->disabled(fn() => !$this->canEditAccount),
+                                ->disabled(fn () => ! $this->canEditAccount),
                             PhoneInput::make('phone_number')
                                 ->label(__('filament-loginkit::filament-loginkit.sms.phone_label'))
                                 ->initialCountry('tr')
@@ -192,7 +193,7 @@ class Account extends Page implements HasForms
         try {
             $data = $this->password;
 
-            if (!Hash::check($data['current_password'], $this->user->password)) {
+            if (! Hash::check($data['current_password'], $this->user->password)) {
                 Notification::make()
                     ->title(__('filament-loginkit::filament-loginkit.notifications.error'))
                     ->body(__('filament-loginkit::filament-loginkit.notifications.current_password_incorrect'))
@@ -260,7 +261,6 @@ class Account extends Page implements HasForms
         ];
     }
 
-
     public function getCurrentTwoFactorTypeProperty(): ?string
     {
         return $this->twoFactor['twoFactorType'] ?? null;
@@ -273,7 +273,7 @@ class Account extends Page implements HasForms
 
     public function getCurrentMethodName(): string
     {
-        if (!$this->is2faEnabled()) {
+        if (! $this->is2faEnabled()) {
             return '';
         }
 
@@ -313,12 +313,13 @@ class Account extends Page implements HasForms
     {
         $type = $this->twoFactor['twoFactorType'] ?? null;
 
-        if (!$type) {
+        if (! $type) {
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.notifications.warning'))
                 ->body(__('filament-loginkit::filament-loginkit.notifications.select_two_factor_method'))
                 ->warning()
                 ->send();
+
             return;
         }
 
@@ -340,7 +341,6 @@ class Account extends Page implements HasForms
             $this->setup2faCodeBased($type);
         }
     }
-
 
     private function setup2faAuthenticator(): void
     {
@@ -364,7 +364,6 @@ class Account extends Page implements HasForms
                 ->send();
         }
     }
-
 
     private function setup2faCodeBased(string $type): void
     {
@@ -399,6 +398,7 @@ class Account extends Page implements HasForms
                 ->send();
 
             $this->showConfirmation = false;
+
             return;
         }
 
@@ -410,6 +410,7 @@ class Account extends Page implements HasForms
             Carbon::parse($this->user->two_factor_expires_at)->isFuture()
         ) {
             $this->showConfirmation = true;
+
             return;
         }
 
@@ -425,6 +426,7 @@ class Account extends Page implements HasForms
                 ->send();
 
             $this->showConfirmation = true;
+
             return;
         }
 
@@ -442,6 +444,7 @@ class Account extends Page implements HasForms
                 ->send();
 
             $this->showConfirmation = true;
+
             return;
         }
 
@@ -460,12 +463,9 @@ class Account extends Page implements HasForms
             ->send();
     }
 
-
-
-
     public function confirmTwoFactorAuthentication(): void
     {
-        if (!$this->otpCode || strlen($this->otpCode) !== 6) {
+        if (! $this->otpCode || strlen($this->otpCode) !== 6) {
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.notifications.warning'))
                 ->body(__('filament-loginkit::filament-loginkit.notifications.enter_six_digit_code'))
@@ -494,7 +494,6 @@ class Account extends Page implements HasForms
         }
     }
 
-
     private function confirmAuthenticatorCode(): void
     {
         $confirmAction = app(ConfirmTwoFactorAuthentication::class);
@@ -504,8 +503,8 @@ class Account extends Page implements HasForms
     private function confirmCodeBasedAuth(): void
     {
         if (
-            !$this->user->two_factor_code ||
-            !Hash::check($this->otpCode, $this->user->two_factor_code) ||
+            ! $this->user->two_factor_code ||
+            ! Hash::check($this->otpCode, $this->user->two_factor_code) ||
             Carbon::parse($this->user->two_factor_expires_at)->isPast()
         ) {
             throw new \Exception('Invalid or expired code');
@@ -543,10 +542,9 @@ class Account extends Page implements HasForms
             ->send();
     }
 
-
     public function disable2fa(): void
     {
-        if (!$this->is2faEnabled()) {
+        if (! $this->is2faEnabled()) {
             Notification::make()
                 ->title(__('filament-loginkit::filament-loginkit.notifications.info'))
                 ->body(__('filament-loginkit::filament-loginkit.notifications.two_factor_already_disabled'))

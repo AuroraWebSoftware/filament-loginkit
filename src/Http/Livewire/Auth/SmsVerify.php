@@ -19,7 +19,7 @@ use Twilio\Rest\Client;
 
 class SmsVerify extends Page
 {
-    protected static string|null|\BackedEnum $navigationIcon = null;
+    protected static string | null | \BackedEnum $navigationIcon = null;
 
     protected string $view = 'filament-loginkit::auth.sms-verify';
 

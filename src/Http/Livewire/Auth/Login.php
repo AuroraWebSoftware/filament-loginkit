@@ -57,7 +57,8 @@ use Ysfkaya\FilamentPhoneInput\Forms\PhoneInput;
 
 class Login extends SimplePage
 {
-    use WithRateLimiting, InteractsWithSchemas;
+    use InteractsWithSchemas;
+    use WithRateLimiting;
 
     public string $loginTab = 'email';
 
@@ -65,13 +66,17 @@ class Login extends SimplePage
      * @var array<string, mixed> | null
      */
     public ?array $data = [];
+
     public ?array $smsPhoneData = [];
 
     public ?string $phone_number = null;
+
     public string $turnstileToken = '';
+
     public string $turnstileTokenSms = '';
 
     public int $maxSmsAttempts;
+
     public int $smsAttemptDecay;
 
     #[Locked]
@@ -194,89 +199,89 @@ class Login extends SimplePage
         return $user && $provider->validateCredentials($user, $credentials);
     }
 
-//    public function authenticate(): ?LoginResponse
-//    {
-//        try {
-//            $this->rateLimit(5);
-//        } catch (TooManyRequestsException $exception) {
-//            $this->getRateLimitedNotification($exception)?->send();
-//
-//            return null;
-//        }
-//
-//        if (config('filament-loginkit.turnstile.enabled') &&
-//            !$this->verifyTurnstileOrNotify($this->turnstileToken)) {
-//            return null;
-//        }
-//
-//        $data = $this->form->getState();
-//
-//        /** @var SessionGuard $authGuard */
-//        $authGuard = Filament::auth();
-//
-//        $authProvider = $authGuard->getProvider();
-//        /** @phpstan-ignore-line */
-//        $credentials = $this->getCredentialsFromFormData($data);
-//
-//        $user = $authProvider->retrieveByCredentials($credentials);
-//
-//        if ((!$user) || (!$authProvider->validateCredentials($user, $credentials))) {
-//            $this->userUndertakingMultiFactorAuthentication = null;
-//
-//            $this->fireFailedEvent($authGuard, $user, $credentials);
-//            $this->throwFailureValidationException();
-//        }
-//
-//        if ($this->isUserInactive($user)) {
-//            $this->errorNotify('inactive', 'email');
-//            $this->resetTurnstile();
-//            $this->throwFailureValidationException();
-//        }
-//
-//        session()->put('login_type', 'email');
-//
-//        if (
-//            filled($this->userUndertakingMultiFactorAuthentication) &&
-//            (decrypt($this->userUndertakingMultiFactorAuthentication) === $user->getAuthIdentifier())
-//        ) {
-//            $this->multiFactorChallengeForm->validate();
-//        } else {
-//            foreach (Filament::getMultiFactorAuthenticationProviders() as $multiFactorAuthenticationProvider) {
-//                if (!$multiFactorAuthenticationProvider->isEnabled($user)) {
-//                    continue;
-//                }
-//
-//                $this->userUndertakingMultiFactorAuthentication = encrypt($user->getAuthIdentifier());
-//
-//                if ($multiFactorAuthenticationProvider instanceof HasBeforeChallengeHook) {
-//                    $multiFactorAuthenticationProvider->beforeChallenge($user);
-//                }
-//
-//                break;
-//            }
-//
-//            if (filled($this->userUndertakingMultiFactorAuthentication)) {
-//                $this->multiFactorChallengeForm->fill();
-//
-//                return null;
-//            }
-//        }
-//
-//        if (!$authGuard->attemptWhen($credentials, function (Authenticatable $user): bool {
-//            if (!($user instanceof FilamentUser)) {
-//                return true;
-//            }
-//
-//            return $user->canAccessPanel(Filament::getCurrentOrDefaultPanel());
-//        }, $data['remember'] ?? false)) {
-//            $this->fireFailedEvent($authGuard, $user, $credentials);
-//            $this->throwFailureValidationException();
-//        }
-//
-//        session()->regenerate();
-//
-//        return app(LoginResponse::class);
-//    }
+    //    public function authenticate(): ?LoginResponse
+    //    {
+    //        try {
+    //            $this->rateLimit(5);
+    //        } catch (TooManyRequestsException $exception) {
+    //            $this->getRateLimitedNotification($exception)?->send();
+    //
+    //            return null;
+    //        }
+    //
+    //        if (config('filament-loginkit.turnstile.enabled') &&
+    //            !$this->verifyTurnstileOrNotify($this->turnstileToken)) {
+    //            return null;
+    //        }
+    //
+    //        $data = $this->form->getState();
+    //
+    //        /** @var SessionGuard $authGuard */
+    //        $authGuard = Filament::auth();
+    //
+    //        $authProvider = $authGuard->getProvider();
+    //        /** @phpstan-ignore-line */
+    //        $credentials = $this->getCredentialsFromFormData($data);
+    //
+    //        $user = $authProvider->retrieveByCredentials($credentials);
+    //
+    //        if ((!$user) || (!$authProvider->validateCredentials($user, $credentials))) {
+    //            $this->userUndertakingMultiFactorAuthentication = null;
+    //
+    //            $this->fireFailedEvent($authGuard, $user, $credentials);
+    //            $this->throwFailureValidationException();
+    //        }
+    //
+    //        if ($this->isUserInactive($user)) {
+    //            $this->errorNotify('inactive', 'email');
+    //            $this->resetTurnstile();
+    //            $this->throwFailureValidationException();
+    //        }
+    //
+    //        session()->put('login_type', 'email');
+    //
+    //        if (
+    //            filled($this->userUndertakingMultiFactorAuthentication) &&
+    //            (decrypt($this->userUndertakingMultiFactorAuthentication) === $user->getAuthIdentifier())
+    //        ) {
+    //            $this->multiFactorChallengeForm->validate();
+    //        } else {
+    //            foreach (Filament::getMultiFactorAuthenticationProviders() as $multiFactorAuthenticationProvider) {
+    //                if (!$multiFactorAuthenticationProvider->isEnabled($user)) {
+    //                    continue;
+    //                }
+    //
+    //                $this->userUndertakingMultiFactorAuthentication = encrypt($user->getAuthIdentifier());
+    //
+    //                if ($multiFactorAuthenticationProvider instanceof HasBeforeChallengeHook) {
+    //                    $multiFactorAuthenticationProvider->beforeChallenge($user);
+    //                }
+    //
+    //                break;
+    //            }
+    //
+    //            if (filled($this->userUndertakingMultiFactorAuthentication)) {
+    //                $this->multiFactorChallengeForm->fill();
+    //
+    //                return null;
+    //            }
+    //        }
+    //
+    //        if (!$authGuard->attemptWhen($credentials, function (Authenticatable $user): bool {
+    //            if (!($user instanceof FilamentUser)) {
+    //                return true;
+    //            }
+    //
+    //            return $user->canAccessPanel(Filament::getCurrentOrDefaultPanel());
+    //        }, $data['remember'] ?? false)) {
+    //            $this->fireFailedEvent($authGuard, $user, $credentials);
+    //            $this->throwFailureValidationException();
+    //        }
+    //
+    //        session()->regenerate();
+    //
+    //        return app(LoginResponse::class);
+    //    }
 
     protected function getRateLimitedNotification(TooManyRequestsException $exception): ?Notification
     {
@@ -293,7 +298,7 @@ class Login extends SimplePage
     }
 
     /**
-     * @param array<string, mixed> $credentials
+     * @param  array<string, mixed>  $credentials
      */
     protected function fireFailedEvent(Guard $guard, ?Authenticatable $user, #[SensitiveParameter] array $credentials): void
     {
@@ -337,17 +342,17 @@ class Login extends SimplePage
 
                 $enabledMultiFactorAuthenticationProviders = array_filter(
                     Filament::getMultiFactorAuthenticationProviders(),
-                    fn(MultiFactorAuthenticationProvider $multiFactorAuthenticationProvider): bool => $multiFactorAuthenticationProvider->isEnabled($user)
+                    fn (MultiFactorAuthenticationProvider $multiFactorAuthenticationProvider): bool => $multiFactorAuthenticationProvider->isEnabled($user)
                 );
 
                 return [
                     ...Arr::wrap($this->getMultiFactorProviderFormComponent()),
                     ...collect($enabledMultiFactorAuthenticationProviders)
-                        ->map(fn(MultiFactorAuthenticationProvider $multiFactorAuthenticationProvider): Component => Group::make($multiFactorAuthenticationProvider->getChallengeFormComponents($user))
+                        ->map(fn (MultiFactorAuthenticationProvider $multiFactorAuthenticationProvider): Component => Group::make($multiFactorAuthenticationProvider->getChallengeFormComponents($user))
                             ->statePath($multiFactorAuthenticationProvider->getId())
                             ->when(
                                 count($enabledMultiFactorAuthenticationProviders) > 1,
-                                fn(Group $group) => $group->visible(fn(Get $get): bool => $get('provider') === $multiFactorAuthenticationProvider->getId())
+                                fn (Group $group) => $group->visible(fn (Get $get): bool => $get('provider') === $multiFactorAuthenticationProvider->getId())
                             ))
                         ->all(),
                 ];
@@ -397,7 +402,7 @@ class Login extends SimplePage
 
         $enabledMultiFactorAuthenticationProviders = array_filter(
             Filament::getMultiFactorAuthenticationProviders(),
-            fn(MultiFactorAuthenticationProvider $multiFactorAuthenticationProvider): bool => $multiFactorAuthenticationProvider->isEnabled($user)
+            fn (MultiFactorAuthenticationProvider $multiFactorAuthenticationProvider): bool => $multiFactorAuthenticationProvider->isEnabled($user)
         );
 
         if (count($enabledMultiFactorAuthenticationProviders) <= 1) {
@@ -407,18 +412,18 @@ class Login extends SimplePage
         return Section::make()
             ->compact()
             ->secondary()
-            ->schema(fn(Section $section): array => [
+            ->schema(fn (Section $section): array => [
                 Radio::make('provider')
                     ->label(__('filament-panels::auth/pages/login.multi_factor.form.provider.label'))
                     ->options(array_map(
-                        fn(MultiFactorAuthenticationProvider $multiFactorAuthenticationProvider): string => $multiFactorAuthenticationProvider->getLoginFormLabel(),
+                        fn (MultiFactorAuthenticationProvider $multiFactorAuthenticationProvider): string => $multiFactorAuthenticationProvider->getLoginFormLabel(),
                         $enabledMultiFactorAuthenticationProviders,
                     ))
                     ->live()
                     ->afterStateUpdated(function (?string $state) use ($enabledMultiFactorAuthenticationProviders, $section, $user): void {
                         $provider = $enabledMultiFactorAuthenticationProviders[$state] ?? null;
 
-                        if (!$provider) {
+                        if (! $provider) {
                             return;
                         }
 
@@ -428,7 +433,7 @@ class Login extends SimplePage
                             ->getChildSchema()
                             ->fill();
 
-                        if (!($provider instanceof HasBeforeChallengeHook)) {
+                        if (! ($provider instanceof HasBeforeChallengeHook)) {
                             return;
                         }
 
@@ -448,12 +453,12 @@ class Login extends SimplePage
             ->url(filament()->getRegistrationUrl());
     }
 
-    public function getTitle(): string|Htmlable
+    public function getTitle(): string | Htmlable
     {
         return __('filament-panels::auth/pages/login.title');
     }
 
-    public function getHeading(): string|Htmlable
+    public function getHeading(): string | Htmlable
     {
         if (filled($this->userUndertakingMultiFactorAuthentication)) {
             return __('filament-panels::auth/pages/login.multi_factor.heading');
@@ -507,7 +512,7 @@ class Login extends SimplePage
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     protected function getCredentialsFromFormData(#[SensitiveParameter] array $data): array
@@ -518,13 +523,13 @@ class Login extends SimplePage
         ];
     }
 
-    public function getSubheading(): string|Htmlable|null
+    public function getSubheading(): string | Htmlable | null
     {
         if (filled($this->userUndertakingMultiFactorAuthentication)) {
             return __('filament-panels::auth/pages/login.multi_factor.subheading');
         }
 
-        if (!filament()->hasRegistration()) {
+        if (! filament()->hasRegistration()) {
             return null;
         }
 
@@ -542,7 +547,7 @@ class Login extends SimplePage
                     ->fullWidth($this->hasFullWidthFormActions())
                     ->key('form-actions'),
             ])
-            ->visible(fn(): bool => blank($this->userUndertakingMultiFactorAuthentication));
+            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication));
     }
 
     public function getMultiFactorChallengeFormContentComponent(): Component
@@ -555,10 +560,10 @@ class Login extends SimplePage
                     ->alignment($this->getMultiFactorChallengeFormActionsAlignment())
                     ->fullWidth($this->hasFullWidthMultiFactorChallengeFormActions()),
             ])
-            ->visible(fn(): bool => filled($this->userUndertakingMultiFactorAuthentication));
+            ->visible(fn (): bool => filled($this->userUndertakingMultiFactorAuthentication));
     }
 
-    public function getMultiFactorChallengeFormActionsAlignment(): string|Alignment
+    public function getMultiFactorChallengeFormActionsAlignment(): string | Alignment
     {
         return $this->getFormActionsAlignment();
     }
@@ -579,11 +584,13 @@ class Login extends SimplePage
 
     private function cacheIncrement(string $key, int $ttl): int
     {
-        if (!Cache::has($key)) {
+        if (! Cache::has($key)) {
             Cache::put($key, 1, $ttl);
+
             return 1;
         }
         Cache::increment($key);
+
         return Cache::get($key);
     }
 
@@ -591,12 +598,13 @@ class Login extends SimplePage
     {
         return $user
             && DbSchema::hasColumn('users', 'is_active')
-            && !(bool)$user->is_active;
+            && ! (bool) $user->is_active;
     }
 
     private function generateSmsCode(): string
     {
         $len = config('filament-loginkit.sms.code_length', 6);
+
         return str_pad(random_int(0, (10 ** $len) - 1), $len, '0', STR_PAD_LEFT);
     }
 
@@ -614,13 +622,14 @@ class Login extends SimplePage
             return $res->successful() && ($res->json()['success'] ?? false);
         } catch (\Throwable $e) {
             Log::error('Turnstile HTTP error', ['msg' => $e->getMessage()]);
+
             return false;
         }
     }
 
     private function verifyTurnstileOrNotify(?string $token, string $property = 'turnstileToken'): bool
     {
-        if (blank($token) || !$this->verifyTurnstile($token)) {
+        if (blank($token) || ! $this->verifyTurnstile($token)) {
             $this->resetTurnstile($property);
 
             Notification::make()
@@ -649,6 +658,7 @@ class Login extends SimplePage
                 ->body(__('filament-loginkit::filament-loginkit.generic_fail_body'))
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -658,7 +668,6 @@ class Login extends SimplePage
             ->danger()
             ->send();
     }
-
 
     public function sendSmsCode()
     {
@@ -682,7 +691,7 @@ class Login extends SimplePage
 
         $user = User::where('phone_number', $this->phone_number)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->errorNotify('not_found', 'sms');
 
             return;
@@ -695,16 +704,16 @@ class Login extends SimplePage
         }
 
         $floodKey = 'sms_flood:' . md5($this->phone_number);
-        $floodWindow = (int)config('filament-loginkit.sms.flood.window_minutes');
+        $floodWindow = (int) config('filament-loginkit.sms.flood.window_minutes');
         if ($this->cacheIncrement($floodKey, $floodWindow * 60) >
-            (int)config('filament-loginkit.sms.flood.max_per_window')) {
+            (int) config('filament-loginkit.sms.flood.max_per_window')) {
             $this->errorNotify('too_many_requests', 'sms');
 
             return;
         }
 
         if (config('filament-loginkit.turnstile.enabled') &&
-            !$this->verifyTurnstileOrNotify($this->turnstileTokenSms)) {
+            ! $this->verifyTurnstileOrNotify($this->turnstileTokenSms)) {
             return;
         }
 
@@ -725,7 +734,7 @@ class Login extends SimplePage
 
         $user->update([
             'sms_login_code' => \Illuminate\Support\Facades\Hash::make($code),
-            'sms_login_expires_at' => now()->addMinutes((int)config('filament-loginkit.sms.code_ttl')),
+            'sms_login_expires_at' => now()->addMinutes((int) config('filament-loginkit.sms.code_ttl')),
         ]);
 
         $this->dispatchSms($user, $code);
@@ -741,7 +750,6 @@ class Login extends SimplePage
 
         return $this->redirect(url($panelPath . '/sms-verify'), navigate: false);
     }
-
 
     private function dispatchSms(User $user, string $code): void
     {
@@ -767,6 +775,7 @@ class Login extends SimplePage
 
         if (blank($sid) || blank($token) || blank($from) || blank($tplSid)) {
             Log::error('Twilio WhatsApp credentials missing.');
+
             throw new \RuntimeException('Twilio WhatsApp credentials missing.');
         }
 
@@ -774,7 +783,7 @@ class Login extends SimplePage
         $to = 'whatsapp:' . (str_starts_with($user->phone_number, '+')
                 ? $user->phone_number
                 : '+' . $user->phone_number);
-        if (!str_starts_with($from, 'whatsapp:')) {
+        if (! str_starts_with($from, 'whatsapp:')) {
             $from = 'whatsapp:' . (str_starts_with($from, '+') ? $from : '+' . $from);
         }
 
@@ -872,6 +881,4 @@ class Login extends SimplePage
 
         return $this->redirect(url($panelPath . '/sms-verify'), navigate: false);
     }
-
 }
-
